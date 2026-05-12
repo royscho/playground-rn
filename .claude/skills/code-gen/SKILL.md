@@ -8,9 +8,11 @@ description: Use when asked to implement any roadmap step or feature in this pro
 ## Overview
 
 Interactive code generation with three human-approval gates:
-**Design → [approve] → Implement → [approve] → Test → Review (3 agents) → [approve] → Push**
+**Design → [approve] → Implement → [approve] → Test → Review (1 agent by default) → [approve] → Push**
 
-Never skip a gate. Never push without tests passing and all three reviewers passing.
+Never skip a gate. Never push without tests passing and the reviewer passing.
+
+> **Reviewer count:** Dispatch **1 reviewer** by default. Only dispatch all 3 in parallel if the user explicitly asks (e.g. "use 3 reviewers").
 
 ## Workflow
 
@@ -52,10 +54,10 @@ digraph code_gen {
   "Run tests" -> "Tests pass?" ;
   "Tests pass?" -> "Fix failing tests" [label="no"];
   "Fix failing tests" -> "Run tests";
-  "Tests pass?" -> "Dispatch 3 parallel review agents" [label="yes"];
-  "Dispatch 3 parallel review agents" -> "All reviewers pass?";
+  "Tests pass?" -> "Dispatch reviewer(s)" [label="yes"];
+  "Dispatch reviewer(s)" -> "All reviewers pass?";
   "All reviewers pass?" -> "Fix review findings" [label="no"];
-  "Fix review findings" -> "Dispatch 3 parallel review agents";
+  "Fix review findings" -> "Dispatch reviewer(s)";
   "All reviewers pass?" -> "Write implementation.md + index.html" [label="yes"];
   "Write implementation.md + index.html" -> "Commit + push";
 }
@@ -215,11 +217,11 @@ Fix every failing test before moving to reviewers. Do not pass failing tests to 
 
 ---
 
-## Phase 4 — Review (3 parallel agents)
+## Phase 4 — Review
 
+**Default: dispatch 1 reviewer** (Reviewer 1 — Conventions). Only dispatch all three in parallel if the user explicitly requests it.
 
-
-Dispatch all three at the same time using the Agent tool.
+Use the Agent tool.
 
 ### Reviewer 1 — Conventions
 Checks against `docs/DESIGN.md` rules:
@@ -251,9 +253,9 @@ Checks against `docs/DESIGN.md` rules:
 - No hardcoded spacing numbers — must use `useAppTheme().spacing`
 
 ### Review gate
-All three reviewers must pass. If any reviewer finds issues:
+All dispatched reviewers must pass. If any reviewer finds issues:
 1. Fix all findings
-2. Re-dispatch all three reviewers
+2. Re-dispatch the same reviewer(s)
 3. Repeat until clean
 
 ---
@@ -342,7 +344,7 @@ Before dispatching reviewers, confirm none of these are present:
 
 - Writing source files before design is approved
 - Dispatching reviewers before implementation is approved
-- Pushing before all 3 reviewers pass AND user gives final approval
+- Pushing before all dispatched reviewers pass AND user gives final approval
 - Using `SafeAreaView` or `View` as screen root
 - Putting files in `src/screens/` or root
 - Props drilled more than 2 levels without Zustand
