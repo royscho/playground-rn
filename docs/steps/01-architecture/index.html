@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Step 1 — Architecture</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.6;
+      padding: 40px 20px 80px;
+    }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* Header */
+    .badge {
+      display: inline-block;
+      background: #6C63FF22;
+      color: #6C63FF;
+      border: 1px solid #6C63FF55;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      font-size: 16px;
+      margin-bottom: 48px;
+    }
+
+    .commit-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #1e2330;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: #a78bfa;
+      margin-bottom: 48px;
+    }
+
+    .commit-chip span { color: #64748b; }
+
+    /* Section */
+    section { margin-bottom: 48px; }
+
+    h2 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1e2330;
+    }
+
+    /* Cards */
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+
+    .card {
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .card-icon {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 6px;
+    }
+
+    .card p {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    /* File list */
+    .file-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .file-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+
+    .file-path {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: #6C63FF;
+      white-space: nowrap;
+      min-width: 280px;
+    }
+
+    .file-desc {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      padding: 2px 7px;
+      white-space: nowrap;
+    }
+
+    .tag-new  { background: #0d2818; color: #4ade80; border: 1px solid #166534; }
+    .tag-mod  { background: #1c1a07; color: #facc15; border: 1px solid #713f12; }
+    .tag-move { background: #0d1f38; color: #60a5fa; border: 1px solid #1e40af; }
+
+    /* Alias diagram */
+    .alias-flow {
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      border-radius: 12px;
+      padding: 28px;
+    }
+
+    .alias-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .alias-row:last-child { margin-bottom: 0; }
+
+    .alias-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .alias-code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      background: #0f1117;
+      border: 1px solid #2d3748;
+      border-radius: 6px;
+      padding: 6px 12px;
+      color: #e2e8f0;
+    }
+
+    .arrow { color: #6C63FF; font-size: 18px; }
+
+    .alias-result {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: #4ade80;
+    }
+
+    /* Hook flow */
+    .hook-flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .hook-step {
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .hook-step .hook-name {
+      font-weight: 600;
+      color: #a78bfa;
+    }
+
+    .hook-step .hook-cmd {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .hook-arrow { color: #6C63FF; font-size: 20px; }
+
+    /* Folder tree */
+    .tree {
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      border-radius: 12px;
+      padding: 24px 28px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .tree-dir  { color: #60a5fa; }
+    .tree-file { color: #94a3b8; }
+    .tree-new  { color: #4ade80; }
+
+    /* Footer */
+    .footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid #1e2330;
+      font-size: 13px;
+      color: #475569;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="badge">Step 1 of 32</div>
+  <h1>Architecture &amp; Tooling</h1>
+  <p class="subtitle">Foundation for every step that follows — folder structure, path aliases, environment config, and pre-commit enforcement.</p>
+
+  <div class="commit-chip">
+    <span>commit</span>
+    chore(dx): architecture, path aliases, env config, pre-commit hooks
+  </div>
+
+  <!-- What was set up -->
+  <section>
+    <h2>What was set up</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">📁</div>
+        <h3>Feature Folder Structure</h3>
+        <p>Full <code>src/</code> scaffold: <code>app/</code>, <code>features/</code>, and <code>shared/</code> with sub-directories matching the design doc.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔗</div>
+        <h3>Path Alias <code>@/</code></h3>
+        <p>Maps <code>@/</code> to <code>src/</code> across TypeScript, Babel, and Metro so imports never use relative <code>../../</code> paths.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🌍</div>
+        <h3>Environment Config</h3>
+        <p><code>react-native-config</code> with <code>.env</code>, <code>.env.staging</code>, and <code>.env.production</code> — one source of truth per environment.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <h3>Pre-commit Hooks</h3>
+        <p>Husky v9 + lint-staged (ESLint + tsc on staged files) + commitlint enforcing the project's <code>type(scope)</code> format.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Path alias -->
+  <section>
+    <h2>Path Alias — how it works</h2>
+    <div class="alias-flow">
+      <div class="alias-row">
+        <div class="alias-label">tsconfig</div>
+        <div class="alias-code">"@/*": ["src/*"]</div>
+        <div class="arrow">→</div>
+        <div class="alias-result">IDE autocomplete + type checking</div>
+      </div>
+      <div class="alias-row">
+        <div class="alias-label">Babel</div>
+        <div class="alias-code">"@": "./src"</div>
+        <div class="arrow">→</div>
+        <div class="alias-result">Runtime bundle resolution</div>
+      </div>
+      <div class="alias-row">
+        <div class="alias-label">Metro</div>
+        <div class="alias-code">extraNodeModules: { "@": "src/" }</div>
+        <div class="arrow">→</div>
+        <div class="alias-result">Metro bundler resolver</div>
+      </div>
+      <div class="alias-row" style="margin-top:16px; padding-top:16px; border-top:1px solid #2d3748;">
+        <div class="alias-label">Usage</div>
+        <div class="alias-code">import { Button } from '@/shared/components/Button'</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pre-commit hook flow -->
+  <section>
+    <h2>Pre-commit Gate</h2>
+    <div class="hook-flow">
+      <div class="hook-step">
+        <span class="hook-name">git commit</span>
+        <span class="hook-cmd">you type this</span>
+      </div>
+      <div class="hook-arrow">→</div>
+      <div class="hook-step">
+        <span class="hook-name">pre-commit</span>
+        <span class="hook-cmd">npx lint-staged</span>
+      </div>
+      <div class="hook-arrow">→</div>
+      <div class="hook-step">
+        <span class="hook-name">eslint --fix</span>
+        <span class="hook-cmd">staged .ts/.tsx</span>
+      </div>
+      <div class="hook-arrow">→</div>
+      <div class="hook-step">
+        <span class="hook-name">tsc --noEmit</span>
+        <span class="hook-cmd">whole project</span>
+      </div>
+      <div class="hook-arrow">→</div>
+      <div class="hook-step">
+        <span class="hook-name">commit-msg</span>
+        <span class="hook-cmd">commitlint</span>
+      </div>
+      <div class="hook-arrow">→</div>
+      <div class="hook-step">
+        <span class="hook-name" style="color:#4ade80;">✓ committed</span>
+        <span class="hook-cmd">if all pass</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Folder tree -->
+  <section>
+    <h2>Folder Structure</h2>
+    <div class="tree">
+      <span class="tree-dir">src/</span><br>
+      &nbsp;&nbsp;<span class="tree-dir">app/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-new">navigation/</span>&nbsp;&nbsp;<span style="color:#374151;"># step 2 — React Navigation</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-new">providers/</span>&nbsp;&nbsp;&nbsp;<span style="color:#374151;"># step 2 — QueryClient, ThemeProvider</span><br>
+      &nbsp;&nbsp;<span class="tree-dir">features/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-new">auth/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#374151;"># step 4</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-new">posts/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#374151;"># step 7</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-new">…</span><br>
+      &nbsp;&nbsp;<span class="tree-dir">shared/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-new">api/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-file">networkConfig.ts</span>&nbsp;&nbsp;<span style="color:#374151;"># NetInfo → TanStack online manager</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-file">queryClient.ts</span>&nbsp;&nbsp;&nbsp;<span style="color:#374151;"># QueryClient instance</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-new">components/</span>&nbsp;&nbsp;<span style="color:#374151;"># step 3 — ScreenWrapper, Button…</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-new">hooks/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#374151;"># step 3 — useAppTheme</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-new">theme/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#374151;"># step 3 — colors, spacing, typography</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-new">utils/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-new">types/</span>
+    </div>
+  </section>
+
+  <!-- Files changed -->
+  <section>
+    <h2>Files created / modified</h2>
+    <div class="file-list">
+      <div class="file-row">
+        <span class="tag tag-mod">modified</span>
+        <span class="file-path">tsconfig.json</span>
+        <span class="file-desc">Added <code>baseUrl</code>, <code>@/*</code> paths alias, <code>ignoreDeprecations: "6.0"</code> — upgraded TypeScript to 6.0.3</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-mod">modified</span>
+        <span class="file-path">babel.config.js</span>
+        <span class="file-desc">Added <code>babel-plugin-module-resolver</code> with <code>@</code> → <code>./src</code> alias</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-mod">modified</span>
+        <span class="file-path">metro.config.js</span>
+        <span class="file-desc">Added <code>resolver.extraNodeModules</code> mirroring the <code>@</code> alias</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">.env / .env.staging / .env.production</span>
+        <span class="file-desc"><code>API_BASE_URL</code> + <code>APP_ENV</code> per environment via <code>react-native-config</code></span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">commitlint.config.js</span>
+        <span class="file-desc">Enforces <code>type(scope): description</code> — 8 types, 19 scopes</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">.lintstagedrc.js</span>
+        <span class="file-desc">ESLint + tsc on staged TS files before every commit</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">.husky/pre-commit</span>
+        <span class="file-desc">Runs <code>lint-staged</code> on every commit</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">.husky/commit-msg</span>
+        <span class="file-desc">Runs <code>commitlint</code> to validate commit message format</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-move">moved</span>
+        <span class="file-path">src/shared/api/networkConfig.ts</span>
+        <span class="file-desc">Moved from project root — TanStack Query online manager wired to NetInfo</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-move">moved</span>
+        <span class="file-path">src/shared/api/queryClient.ts</span>
+        <span class="file-desc">Moved from project root — <code>QueryClient</code> instance</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">jest.setup.js</span>
+        <span class="file-desc">Mocks <code>@react-native-community/netinfo</code> native module for Jest</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-mod">modified</span>
+        <span class="file-path">__tests__/App.test.tsx</span>
+        <span class="file-desc">Replaced deprecated <code>react-test-renderer</code> with <code>@testing-library/react-native</code></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <span>playground-rn · Step 1 of 32</span>
+    <span>Next: Step 2 — Navigation with typed routes, tabs, drawer, deep linking</span>
+  </div>
+
+</div>
+</body>
+</html>
