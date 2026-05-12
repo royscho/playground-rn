@@ -56,7 +56,8 @@ digraph code_gen {
   "Dispatch 3 parallel review agents" -> "All reviewers pass?";
   "All reviewers pass?" -> "Fix review findings" [label="no"];
   "Fix review findings" -> "Dispatch 3 parallel review agents";
-  "All reviewers pass?" -> "Commit + push" [label="yes"];
+  "All reviewers pass?" -> "Write implementation.md + index.html" [label="yes"];
+  "Write implementation.md + index.html" -> "Commit + push";
 }
 ```
 
@@ -261,13 +262,40 @@ All three reviewers must pass. If any reviewer finds issues:
 
 Only after all reviewers pass and user gives final approval:
 
+### 5a. Write implementation notes
+Update `docs/steps/NN-name/implementation.md` with what was built, decisions made, and reviewer findings.
+
+### 5b. Generate step HTML page
+
+Create `docs/steps/NN-name/index.html` — a dark-themed visual summary of the step.
+
+**Required sections:**
+1. **Header** — step badge (`Step N of 32`), title, one-line subtitle, commit message chip
+2. **What was set up** — 3–5 cards, one per major concept introduced (icon + title + 2-line description)
+3. **Key diagram** — pick the most illustrative concept and show it visually:
+   - Path alias flow (alias → runtime → result rows)
+   - Hook/store data flow
+   - Navigation tree
+   - API request/response cycle
+   - Whatever best explains HOW the step works
+4. **Files table** — every file with a `new` / `modified` / `moved` tag and one-line description
+5. **Footer** — "Step N of 32 · Next: Step N+1 — title"
+
+**Style rules** (match the established design):
+- Background `#0f1117`, surface `#1a1f2e`, border `#2d3748`
+- Accent purple `#6C63FF`, green `#4ade80`, blue `#60a5fa`, yellow `#facc15`
+- Font: `-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`
+- Monospace: `'SF Mono', 'Fira Code', monospace`
+- Tags: `.tag-new` (green), `.tag-mod` (yellow), `.tag-move` (blue)
+- Open in browser after writing: `open docs/steps/NN-name/index.html`
+
+### 5c. Commit and push
+
 ```bash
 git add src/ docs/steps/
 git commit -m "feat(scope): description"
 git push
 ```
-
-Update `docs/steps/NN-name/implementation.md` with what was built before committing.
 
 ---
 
