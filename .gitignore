@@ -68,7 +68,6 @@ yarn-error.log
 
 # Tools
 .bundle/
-.claude/
 .vscode/
 
 # Yarn
