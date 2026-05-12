@@ -245,7 +245,7 @@ Checks against `docs/DESIGN.md` rules:
 - Error states handled (loading, error, empty)
 - Image component is `react-native-fast-image`
 - Dates use `date-fns`
-- HTTP uses `axios` client (not `fetch`)
+- HTTP uses `client.ts` fetch wrapper (not raw `fetch` or `axios`)
 - No `console.log` left in code
 - No hardcoded colors (`'#333'`, `'white'`, `'black'`) — must use `useAppTheme().colors`
 - No hardcoded spacing numbers — must use `useAppTheme().spacing`
@@ -309,7 +309,7 @@ git push
 | Secure storage | `react-native-keychain` | MMKV |
 | Forms | React Hook Form + Zod | `useState` per field |
 | Dates | `date-fns` | `moment`, manual format |
-| HTTP | `axios` client | `fetch` |
+| HTTP | `client.ts` fetch wrapper | raw `fetch`, `axios` |
 | State — server | TanStack Query | `useEffect` fetch |
 | State — global | Zustand + `devtools` | Context alone |
 | Animations | Reanimated 3 | `Animated` API |

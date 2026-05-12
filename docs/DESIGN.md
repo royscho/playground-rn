@@ -47,7 +47,7 @@ Built step-by-step, one commit per topic, with an opinionated stack chosen for r
 | Pre-commit | Husky + lint-staged + commitlint | Block bad commits at the source |
 | CI/CD | GitHub Actions + Fastlane | GitHub Actions free for public repos; Fastlane open source |
 | Native bridge | Turbo Modules + codegen | New Architecture native module pattern |
-| HTTP client | axios | Cleanest 401 + token refresh interceptor pattern (request queue during refresh) |
+| HTTP client | fetch (native) | Built-in, no dependency, sufficient for token refresh + request queuing |
 | Splash screen | react-native-bootsplash | Animated, dark mode variant, iOS + Android asset pipeline |
 | SVG | react-native-svg + svg-transformer | SVG as React components, replaces PNG icon sets |
 | Skeleton | custom + Reanimated shimmer | Placeholder loading UI, no extra lib needed |
@@ -99,7 +99,7 @@ src/
 └── shared/
     ├── components/          # ScreenWrapper, Button, Input, Modal, Toast, EmptyState, ErrorBoundary, SkeletonItem, SkeletonList
     ├── hooks/               # useAppTheme, useDebounce, useMount
-    ├── api/                 # axios instance, interceptors, error handling
+    ├── api/                 # fetch wrapper, interceptors, error handling
     ├── theme/               # colors, typography, spacing, shadows
     ├── utils/               # formatDate, truncate, sleep, etc.
     └── types/               # Global TS types (Nullable, ID, ApiError…)
@@ -311,7 +311,7 @@ Sentry captures automatically via `Sentry.ErrorBoundary`. `onError` callback tri
 
 ```
 shared/api/
-├── client.ts          # axios instance with baseURL + timeout
+├── client.ts          # fetch wrapper with baseURL, default headers, error handling
 ├── interceptors.ts    # request: inject token | response: 401 → queue → refresh → retry all
 ├── tokenQueue.ts      # pending request queue used during token refresh
 ├── errorHandler.ts    # normalize API errors to AppError type
@@ -322,7 +322,7 @@ Feature-level API files import `client` and export typed functions:
 ```ts
 // features/posts/api/posts.api.ts
 export const fetchPosts = (page: number) =>
-  client.get<Post[]>('/posts', { params: { _page: page, _limit: 10 } });
+  client.get<Post[]>(`/posts?_page=${page}&_limit=10`);
 ```
 
 ---
