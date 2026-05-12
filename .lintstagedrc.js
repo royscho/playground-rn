@@ -1,0 +1,7 @@
+module.exports = {
+  '*.{ts,tsx}': [
+    'eslint --fix',
+    () => 'tsc --noEmit',
+  ],
+  '*.{js,jsx}': ['eslint --fix'],
+};
