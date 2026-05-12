@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Step 2 — Navigation</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.6;
+      padding: 40px 20px 80px;
+    }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    .badge {
+      display: inline-block;
+      background: #6C63FF22;
+      color: #6C63FF;
+      border: 1px solid #6C63FF55;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      font-size: 16px;
+      margin-bottom: 48px;
+    }
+
+    .commit-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #1e2330;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: #a78bfa;
+      margin-bottom: 48px;
+    }
+
+    .commit-chip span { color: #64748b; }
+
+    section { margin-bottom: 48px; }
+
+    h2 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1e2330;
+    }
+
+    /* Cards */
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+
+    .card {
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .card-icon { font-size: 24px; margin-bottom: 12px; }
+
+    .card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 6px;
+    }
+
+    .card p { font-size: 13px; color: #94a3b8; }
+
+    /* Nav tree diagram */
+    .nav-tree {
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      border-radius: 12px;
+      padding: 28px 32px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 2;
+      overflow-x: auto;
+    }
+
+    .nt-root   { color: #6C63FF; font-weight: 700; }
+    .nt-drawer { color: #60a5fa; font-weight: 600; }
+    .nt-tabs   { color: #a78bfa; font-weight: 600; }
+    .nt-stack  { color: #34d399; font-weight: 600; }
+    .nt-screen { color: #94a3b8; }
+    .nt-param  { color: #facc15; font-size: 11px; }
+    .nt-note   { color: #374151; font-size: 12px; }
+
+    /* Deep link diagram */
+    .deeplink-flow {
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      border-radius: 12px;
+      padding: 28px;
+    }
+
+    .dl-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .dl-row:last-child { margin-bottom: 0; }
+
+    .dl-url {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      background: #0f1117;
+      border: 1px solid #2d3748;
+      border-radius: 6px;
+      padding: 6px 12px;
+      color: #4ade80;
+      flex-shrink: 0;
+    }
+
+    .dl-arrow { color: #6C63FF; font-size: 18px; flex-shrink: 0; }
+
+    .dl-dest {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: #e2e8f0;
+    }
+
+    .dl-param {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      color: #facc15;
+      background: #1c1a07;
+      border: 1px solid #713f12;
+      border-radius: 4px;
+      padding: 2px 6px;
+    }
+
+    /* File list */
+    .file-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .file-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+
+    .file-path {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: #6C63FF;
+      min-width: 300px;
+    }
+
+    .file-desc { font-size: 13px; color: #94a3b8; }
+
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      padding: 2px 7px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .tag-new  { background: #0d2818; color: #4ade80; border: 1px solid #166534; }
+    .tag-mod  { background: #1c1a07; color: #facc15; border: 1px solid #713f12; }
+
+    .file-group {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #475569;
+      margin-top: 20px;
+      margin-bottom: 8px;
+      padding-left: 4px;
+    }
+
+    .file-group:first-child { margin-top: 0; }
+
+    /* Footer */
+    .footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid #1e2330;
+      font-size: 13px;
+      color: #475569;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="badge">Step 2 of 32</div>
+  <h1>Navigation</h1>
+  <p class="subtitle">Full React Navigation v7 structure — RootStack → Drawer → Tabs / Stacks — with typed param lists, 23 placeholder screens, and deep linking via <code>playground://</code>.</p>
+
+  <div class="commit-chip">
+    <span>commit</span>
+    feat(navigation): typed routes, tabs, drawer, and deep linking
+  </div>
+
+  <!-- What was set up -->
+  <section>
+    <h2>What was set up</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">🗺️</div>
+        <h3>Typed Navigator Tree</h3>
+        <p>Four param list types — <code>RootStack</code>, <code>AppDrawer</code>, <code>HomeTabs</code>, <code>PostsStack</code> — with every screen and its params.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📱</div>
+        <h3>Drawer + Bottom Tabs</h3>
+        <p>Drawer holds 18 routes; HomeTabs shows 3 bottom tabs (Dashboard, Feed, Explore). PostDetail takes <code>{ id: string }</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔗</div>
+        <h3>Deep Linking</h3>
+        <p><code>playground://posts/42</code> opens PostDetail directly. URL scheme registered in both <code>Info.plist</code> and <code>AndroidManifest.xml</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🖼️</div>
+        <h3>23 Placeholder Screens</h3>
+        <p>Minimal <code>View + Text</code> screens covering every route. All will be replaced with <code>ScreenWrapper</code> and real UI in Step 3.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔙</div>
+        <h3>Android Back Handler</h3>
+        <p>"Press back again to exit" toast on root tab. Drawer back is handled automatically by <code>@react-navigation/drawer</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Navigator tree -->
+  <section>
+    <h2>Navigator Tree</h2>
+    <div class="nav-tree">
+      <span class="nt-root">RootStack</span> <span class="nt-note">(NativeStack)</span><br>
+      &nbsp;&nbsp;└── <span class="nt-drawer">AppDrawer</span> <span class="nt-note">(Drawer) ← AuthStack added in step 4</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-tabs">HomeTabs</span> <span class="nt-note">(BottomTabs)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">Dashboard</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">Feed</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="nt-screen">Explore</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-stack">Posts</span> <span class="nt-note">(NativeStack)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">PostsList</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="nt-screen">PostDetail</span> <span class="nt-param">{ id: string }</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">Todos</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">Animations</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">Forms</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">Realtime</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">WebView</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">Notifications</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">Performance</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">Settings</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">NativeModules</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">JavaScript</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">Hooks</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">TypeScript</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">Analytics</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">RemoteConfig</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="nt-screen">A11y</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="nt-screen">I18n</span>
+    </div>
+  </section>
+
+  <!-- Deep linking -->
+  <section>
+    <h2>Deep Linking — playground://</h2>
+    <div class="deeplink-flow">
+      <div class="dl-row">
+        <div class="dl-url">playground://dashboard</div>
+        <div class="dl-arrow">→</div>
+        <div class="dl-dest">AppDrawer › HomeTabs › Dashboard</div>
+      </div>
+      <div class="dl-row">
+        <div class="dl-url">playground://feed</div>
+        <div class="dl-arrow">→</div>
+        <div class="dl-dest">AppDrawer › HomeTabs › Feed</div>
+      </div>
+      <div class="dl-row">
+        <div class="dl-url">playground://posts</div>
+        <div class="dl-arrow">→</div>
+        <div class="dl-dest">AppDrawer › Posts › PostsList</div>
+      </div>
+      <div class="dl-row">
+        <div class="dl-url">playground://posts/42</div>
+        <div class="dl-arrow">→</div>
+        <div class="dl-dest">AppDrawer › Posts › PostDetail</div>
+        <div class="dl-param">id = "42"</div>
+      </div>
+      <div class="dl-row">
+        <div class="dl-url">playground://settings</div>
+        <div class="dl-arrow">→</div>
+        <div class="dl-dest">AppDrawer › Settings</div>
+      </div>
+      <div style="margin-top:20px; padding-top:16px; border-top:1px solid #2d3748; font-size:12px; color:#475569; font-family:'SF Mono','Fira Code',monospace;">
+        Test on iOS: &nbsp;xcrun simctl openurl booted "playground://posts/42"<br>
+        Test on Android: &nbsp;adb shell am start -a android.intent.action.VIEW -d "playground://posts/42"
+      </div>
+    </div>
+  </section>
+
+  <!-- Files -->
+  <section>
+    <h2>Files created / modified</h2>
+    <div class="file-list">
+
+      <div class="file-group">Navigation core</div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">src/app/navigation/types.ts</span>
+        <span class="file-desc">All param list types: RootStack, AuthStack, AppDrawer, HomeTabs, PostsStack</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">src/app/navigation/RootNavigator.tsx</span>
+        <span class="file-desc">Top-level NativeStack — renders AppDrawer (AuthStack wired in step 4)</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">src/app/navigation/AppNavigator.tsx</span>
+        <span class="file-desc">Drawer + HomeTabs + PostsStack + Android back-press handler</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">src/app/navigation/linking.ts</span>
+        <span class="file-desc">Deep link config — prefix <code>playground://</code>, routes for dashboard / feed / posts / posts/:id / settings</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">src/app/navigation/linking.test.ts</span>
+        <span class="file-desc">Validates prefixes, required routes, and PostDetail param shape</span>
+      </div>
+
+      <div class="file-group">Placeholder screens — home</div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">src/features/home/screens/DashboardScreen.tsx</span>
+        <span class="file-desc">Root tab screen — minimal View + Text placeholder</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">src/features/home/screens/FeedScreen.tsx</span>
+        <span class="file-desc">Feed tab placeholder</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">src/features/home/screens/ExploreScreen.tsx</span>
+        <span class="file-desc">Explore tab placeholder</span>
+      </div>
+
+      <div class="file-group">Placeholder screens — auth</div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">src/features/auth/screens/LoginScreen.tsx</span>
+        <span class="file-desc">Auth stack — login placeholder (wired in step 4)</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">src/features/auth/screens/RegisterScreen.tsx</span>
+        <span class="file-desc">Auth stack — register placeholder</span>
+      </div>
+
+      <div class="file-group">Placeholder screens — posts</div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">src/features/posts/screens/PostsListScreen.tsx</span>
+        <span class="file-desc">Posts stack entry — list placeholder</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">src/features/posts/screens/PostDetailScreen.tsx</span>
+        <span class="file-desc">Posts stack — receives <code>{ id: string }</code> from deep link or navigation</span>
+      </div>
+
+      <div class="file-group">Placeholder screens — features (15)</div>
+      <div class="file-row">
+        <span class="tag tag-new">new</span>
+        <span class="file-path">src/features/todos / animations / forms / realtime / …</span>
+        <span class="file-desc">One placeholder screen per drawer route: Todos, Animations, Forms, Realtime, WebView, Notifications, Performance, Settings, NativeModules, JavaScript, Hooks, TypeScript, Analytics, RemoteConfig, A11y, I18n</span>
+      </div>
+
+      <div class="file-group">Modified</div>
+      <div class="file-row">
+        <span class="tag tag-mod">modified</span>
+        <span class="file-path">App.tsx</span>
+        <span class="file-desc">Replaced bare <code>View</code> with <code>NavigationContainer</code> + <code>linking</code> config + <code>RootNavigator</code></span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-mod">modified</span>
+        <span class="file-path">index.js</span>
+        <span class="file-desc">Added <code>import 'react-native-gesture-handler'</code> as first import (required by drawer)</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-mod">modified</span>
+        <span class="file-path">babel.config.js</span>
+        <span class="file-desc">Added <code>react-native-reanimated/plugin</code> (required by drawer v7)</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-mod">modified</span>
+        <span class="file-path">ios/playground/Info.plist</span>
+        <span class="file-desc">Registered <code>CFBundleURLSchemes: playground</code> for deep link handling</span>
+      </div>
+      <div class="file-row">
+        <span class="tag tag-mod">modified</span>
+        <span class="file-path">android/app/src/main/AndroidManifest.xml</span>
+        <span class="file-desc">Added <code>intent-filter</code> with <code>android:scheme="playground"</code></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <span>playground-rn · Step 2 of 32</span>
+    <span>Next: Step 3 — Theme system, ScreenWrapper, shared components</span>
+  </div>
+
+</div>
+</body>
+</html>
