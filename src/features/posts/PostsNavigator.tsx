@@ -7,8 +7,8 @@ import { PostDetailScreen } from './screens/PostDetailScreen';
 const Stack = createNativeStackNavigator<PostsStackParamList>();
 
 export const PostsNavigator = () => (
-  <Stack.Navigator>
-    <Stack.Screen name="PostsList" component={PostsListScreen} options={{ title: 'Posts' }} />
-    <Stack.Screen name="PostDetail" component={PostDetailScreen} options={{ title: 'Post' }} />
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="PostsList" component={PostsListScreen} />
+    <Stack.Screen name="PostDetail" component={PostDetailScreen} />
   </Stack.Navigator>
 );

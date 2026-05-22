@@ -1,15 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Text } from 'react-native';
+import { ScreenWrapper } from '@/shared/components';
+import { useAppTheme } from '@/shared/hooks';
 
-export const ExploreScreen = () => (
-  <View style={styles.container}>
-    <Text style={styles.title}>Explore</Text>
-    <Text style={styles.subtitle}>Step 3 will upgrade this to ScreenWrapper</Text>
-  </View>
-);
-
-const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f1117' },
-  title: { fontSize: 24, fontWeight: '700', color: '#e2e8f0', marginBottom: 8 },
-  subtitle: { fontSize: 13, color: '#64748b' },
-});
+export const ExploreScreen = () => {
+  const { colors, typography } = useAppTheme();
+  return (
+    <ScreenWrapper title="Explore" centered>
+      <Text style={[typography.body, { color: colors.textSecondary }]}>
+        Step 7 will add explore content
+      </Text>
+    </ScreenWrapper>
+  );
+};

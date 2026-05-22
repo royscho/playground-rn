@@ -1,15 +1,69 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Switch, Text, View } from 'react-native';
+import { ScreenWrapper } from '@/shared/components';
+import { useAppTheme } from '@/shared/hooks';
+import { useThemeStore } from '@/features/settings/store/themeStore';
+import type { ColorTokens } from '@/shared/theme/colors';
+import type { Spacing } from '@/shared/theme/spacing';
+import type { Typography } from '@/shared/theme/typography';
 
-export const SettingsScreen = () => (
-  <View style={styles.container}>
-    <Text style={styles.title}>Settings</Text>
-    <Text style={styles.subtitle}>Step 3 will add theme toggle</Text>
-  </View>
-);
+const THEME_ICONS = {
+  dark: '🌙',
+  light: '☀️',
+};
 
-const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f1117' },
-  title: { fontSize: 24, fontWeight: '700', color: '#e2e8f0', marginBottom: 8 },
-  subtitle: { fontSize: 13, color: '#64748b' },
-});
+export const SettingsScreen = () => {
+  const { colors, spacing, typography } = useAppTheme();
+  const { isDark, toggleTheme } = useThemeStore();
+  const styles = createStyles(colors, spacing, typography);
+
+  return (
+    <ScreenWrapper title="Settings">
+      <View style={styles.row}>
+        <View style={styles.rowLeft}>
+          <Text style={styles.icon}>{isDark ? THEME_ICONS.dark : THEME_ICONS.light}</Text>
+          <View>
+            <Text style={styles.label}>Dark Mode</Text>
+            <Text style={styles.caption}>{isDark ? 'On' : 'Off'}</Text>
+          </View>
+        </View>
+        <Switch
+          value={isDark}
+          onValueChange={toggleTheme}
+          trackColor={{ false: colors.border, true: colors.primary }}
+          thumbColor={colors.primaryForeground}
+        />
+      </View>
+    </ScreenWrapper>
+  );
+};
+
+const createStyles = (colors: ColorTokens, spacing: Spacing, typography: Typography) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.md,
+      backgroundColor: colors.surface,
+      borderRadius: spacing.sm + spacing.xs,
+    },
+    rowLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
+    icon: {
+      fontSize: typography.h2.fontSize,
+    },
+    label: {
+      ...typography.body,
+      color: colors.text,
+    },
+    caption: {
+      ...typography.caption,
+      color: colors.textSecondary,
+      marginTop: spacing.xxs,
+    },
+  });

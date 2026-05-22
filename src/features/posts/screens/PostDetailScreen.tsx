@@ -1,24 +1,21 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Text } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { PostsStackParamList } from '@/app/navigation/types';
+import { ScreenWrapper } from '@/shared/components';
+import { useAppTheme } from '@/shared/hooks';
 
 type PostDetailRouteProp = RouteProp<PostsStackParamList, 'PostDetail'>;
 
 export const PostDetailScreen = () => {
   const { params } = useRoute<PostDetailRouteProp>();
-
+  const { colors, typography } = useAppTheme();
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Post #{params.id}</Text>
-      <Text style={styles.subtitle}>Step 7 will add full post detail</Text>
-    </View>
+    <ScreenWrapper title={`Post #${params.id}`} showBackButton centered>
+      <Text style={[typography.body, { color: colors.textSecondary }]}>
+        Step 7 will add full post detail
+      </Text>
+    </ScreenWrapper>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f1117' },
-  title: { fontSize: 24, fontWeight: '700', color: '#e2e8f0', marginBottom: 8 },
-  subtitle: { fontSize: 13, color: '#64748b' },
-});

@@ -44,7 +44,9 @@ const useAndroidBackHandler = () => {
       }
       backPressedOnce.current = true;
       ToastAndroid.show('Press back again to exit', ToastAndroid.SHORT);
-      timeoutId = setTimeout(() => { backPressedOnce.current = false; }, BACK_EXIT_TIMEOUT_MS);
+      timeoutId = setTimeout(() => {
+        backPressedOnce.current = false;
+      }, BACK_EXIT_TIMEOUT_MS);
       return true;
     });
     return () => {
@@ -58,8 +60,8 @@ export const AppNavigator = () => {
   useAndroidBackHandler();
 
   return (
-    <Drawer.Navigator>
-      <Drawer.Screen name="HomeTabs" component={HomeTabs} options={{ title: 'Home' }} />
+    <Drawer.Navigator screenOptions={{ headerShown: false }}>
+      <Drawer.Screen name="HomeTabs" component={HomeTabs} />
       <Drawer.Screen name="Posts" component={PostsNavigator} />
       <Drawer.Screen name="Todos" component={TodosScreen} />
       <Drawer.Screen name="Animations" component={AnimationsScreen} />
@@ -69,14 +71,30 @@ export const AppNavigator = () => {
       <Drawer.Screen name="Notifications" component={NotificationsScreen} />
       <Drawer.Screen name="Performance" component={PerformanceScreen} />
       <Drawer.Screen name="Settings" component={SettingsScreen} />
-      <Drawer.Screen name="NativeModules" component={NativeModulesScreen} options={{ title: 'Native Modules' }} />
+      <Drawer.Screen
+        name="NativeModules"
+        component={NativeModulesScreen}
+        options={{ title: 'Native Modules' }}
+      />
       <Drawer.Screen name="JavaScript" component={JavaScriptScreen} />
       <Drawer.Screen name="Hooks" component={HooksScreen} />
       <Drawer.Screen name="TypeScript" component={TypeScriptScreen} />
       <Drawer.Screen name="Analytics" component={AnalyticsScreen} />
-      <Drawer.Screen name="RemoteConfig" component={RemoteConfigScreen} options={{ title: 'Remote Config' }} />
-      <Drawer.Screen name="A11y" component={A11yScreen} options={{ title: 'Accessibility' }} />
-      <Drawer.Screen name="I18n" component={I18nScreen} options={{ title: 'i18n & RTL' }} />
+      <Drawer.Screen
+        name="RemoteConfig"
+        component={RemoteConfigScreen}
+        options={{ title: 'Remote Config' }}
+      />
+      <Drawer.Screen
+        name="A11y"
+        component={A11yScreen}
+        options={{ title: 'Accessibility' }}
+      />
+      <Drawer.Screen
+        name="I18n"
+        component={I18nScreen}
+        options={{ title: 'i18n & RTL' }}
+      />
     </Drawer.Navigator>
   );
 };
