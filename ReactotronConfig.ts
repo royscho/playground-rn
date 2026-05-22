@@ -5,9 +5,7 @@ import {
 } from 'reactotron-react-query';
 import { queryClient } from '@/shared/api/queryClient';
 import reactotronZustand from 'reactotron-plugin-zustand';
-// Add each new Zustand store here as it's created:
-// import { useAuthStore } from '@/features/auth/store/authStore';
-// import { useThemeStore } from '@/features/settings/store/themeStore';
+import { useThemeStore } from '@/features/settings/store/themeStore';
 
 const queryClientManager = new QueryClientManager({
   // @ts-ignore
@@ -24,8 +22,8 @@ Reactotron.configure({
   .use(
     reactotronZustand({
       stores: [
-        // { name: 'auth',    store: useAuthStore },
-        // { name: 'theme',   store: useThemeStore },
+        { name: 'theme', store: useThemeStore },
+        // { name: 'auth', store: useAuthStore },
       ],
     }),
   )
