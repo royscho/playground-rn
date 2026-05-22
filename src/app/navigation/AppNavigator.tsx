@@ -60,7 +60,9 @@ export const AppNavigator = () => {
   useAndroidBackHandler();
 
   return (
-    <Drawer.Navigator screenOptions={{ headerShown: false }}>
+    <Drawer.Navigator
+      screenOptions={{ headerShown: false, drawerType: 'front' }}
+    >
       <Drawer.Screen name="HomeTabs" component={HomeTabs} />
       <Drawer.Screen name="Posts" component={PostsNavigator} />
       <Drawer.Screen name="Todos" component={TodosScreen} />
