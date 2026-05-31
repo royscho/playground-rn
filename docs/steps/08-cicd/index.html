@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Step 8 — CI/CD, Fastlane &amp; Publishing</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f1117; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 40px 24px; max-width: 900px; margin: 0 auto; }
+    code, .mono { font-family: 'SF Mono', 'Fira Code', monospace; }
+
+    /* Header */
+    .header { margin-bottom: 48px; }
+    .badge { display: inline-block; background: #6C63FF22; color: #6C63FF; border: 1px solid #6C63FF55; border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }
+    h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #94A3B8; font-size: 16px; margin-bottom: 16px; }
+    .commit-chip { display: inline-block; background: #1a1f2e; border: 1px solid #2d3748; border-radius: 6px; padding: 6px 12px; font-size: 13px; color: #6C63FF; }
+
+    /* Section */
+    h2 { font-size: 18px; font-weight: 600; color: #e2e8f0; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #2d3748; }
+    h3 { font-size: 15px; font-weight: 600; color: #cbd5e1; margin-bottom: 12px; margin-top: 24px; }
+    section { margin-bottom: 48px; }
+    p { font-size: 14px; color: #94A3B8; line-height: 1.6; margin-bottom: 12px; }
+
+    /* Cards */
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+    .card { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 12px; padding: 20px; }
+    .card-icon { font-size: 24px; margin-bottom: 10px; }
+    .card h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; margin-top: 0; }
+    .card p { font-size: 13px; color: #94A3B8; line-height: 1.5; margin: 0; }
+
+    /* Two-col platform layout */
+    .platform-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 640px) { .platform-grid { grid-template-columns: 1fr; } }
+    .platform-col { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 12px; padding: 24px; }
+    .platform-col .platform-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .platform-col .platform-icon { font-size: 28px; }
+    .platform-col .platform-title { font-size: 16px; font-weight: 700; }
+    .platform-col .platform-cost { font-size: 12px; color: #64748B; }
+
+    /* Steps list */
+    .steps-list { list-style: none; counter-reset: steps; }
+    .steps-list li { counter-increment: steps; display: flex; gap: 14px; margin-bottom: 16px; font-size: 13px; line-height: 1.5; }
+    .steps-list li::before { content: counter(steps); display: flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; background: #6C63FF22; color: #6C63FF; border: 1px solid #6C63FF55; border-radius: 50%; font-size: 11px; font-weight: 700; margin-top: 1px; }
+    .steps-list li .step-body { color: #cbd5e1; }
+    .steps-list li .step-body .note { color: #64748B; font-size: 12px; margin-top: 3px; }
+
+    /* Code block */
+    pre { background: #0d1117; border: 1px solid #2d3748; border-radius: 8px; padding: 18px 20px; font-size: 12px; overflow-x: auto; line-height: 1.7; margin: 12px 0; }
+    pre .comment { color: #4ade8088; }
+    pre .key { color: #60a5fa; }
+    pre .val { color: #fbbf24; }
+    pre .str { color: #4ade80; }
+    pre .kw { color: #c084fc; }
+
+    /* Diagram */
+    .diagram { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 12px; padding: 24px; overflow-x: auto; }
+    .pipeline { display: flex; flex-direction: column; gap: 0; }
+    .pipe-row { display: flex; align-items: stretch; gap: 0; }
+    .pipe-trigger { background: #0f1117; border: 1px solid #6C63FF55; border-radius: 8px; padding: 10px 16px; font-size: 12px; font-weight: 600; color: #6C63FF; white-space: nowrap; display: flex; align-items: center; }
+    .pipe-arrow { color: #334155; font-size: 18px; padding: 0 10px; display: flex; align-items: center; }
+    .pipe-jobs { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .pipe-job { background: #0f1117; border: 1px solid #334155; border-radius: 6px; padding: 8px 14px; font-size: 12px; }
+    .pipe-job .job-name { font-weight: 600; color: #cbd5e1; margin-bottom: 3px; }
+    .pipe-job .job-steps { color: #64748B; font-size: 11px; line-height: 1.5; }
+    .pipe-divider { border: none; border-top: 1px solid #1e293b; margin: 16px 0; }
+
+    /* Warning / info boxes */
+    .callout { border-radius: 8px; padding: 14px 18px; font-size: 13px; line-height: 1.6; margin: 12px 0; }
+    .callout-warn { background: #fb8c0011; border: 1px solid #fb8c0044; color: #fbbf24; }
+    .callout-info { background: #6C63FF11; border: 1px solid #6C63FF44; color: #a5b4fc; }
+    .callout-ok { background: #4ade8011; border: 1px solid #4ade8044; color: #86efac; }
+    .callout strong { font-weight: 700; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; color: #64748B; font-weight: 600; padding: 8px 12px; border-bottom: 1px solid #2d3748; }
+    td { padding: 10px 12px; border-bottom: 1px solid #1a1f2e; vertical-align: top; }
+    tr:hover td { background: #1a1f2e; }
+    .tag { display: inline-block; border-radius: 4px; padding: 2px 7px; font-size: 11px; font-weight: 600; }
+    .tag-ios { background: #60a5fa22; color: #60a5fa; border: 1px solid #60a5fa44; }
+    .tag-android { background: #4ade8022; color: #4ade80; border: 1px solid #4ade8044; }
+    .tag-both { background: #c084fc22; color: #c084fc; border: 1px solid #c084fc44; }
+    .tag-new { background: #4ade8022; color: #4ade80; border: 1px solid #4ade8044; }
+    .path { color: #60a5fa; }
+
+    /* Footer */
+    .footer { text-align: center; color: #64748B; font-size: 13px; padding-top: 32px; border-top: 1px solid #2d3748; }
+    .footer a { color: #6C63FF; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">Step 8 of 32</div>
+    <h1>CI/CD, Fastlane &amp; Publishing</h1>
+    <p class="subtitle">GitHub Actions pipelines, Fastlane build automation, and publishing to TestFlight and Google Play</p>
+    <div class="commit-chip mono">ci: GitHub Actions and Fastlane lanes</div>
+  </div>
+
+  <!-- Prerequisites -->
+  <section>
+    <h2>What you need before publishing</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">🍎</div>
+        <h3>Apple Developer Account</h3>
+        <p>$99/yr. Needed for TestFlight beta and App Store distribution. Sign up at developer.apple.com.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <h3>Google Play Account</h3>
+        <p>$25 one-time. Needed for Play Store. Sign up at play.google.com/console. Takes 1–3 days for first approval.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔐</div>
+        <h3>Fastlane match</h3>
+        <p>Syncs iOS certificates + profiles in a private git repo. One command sets up all team members and CI.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🗝</div>
+        <h3>Android Keystore</h3>
+        <p>A signing key generated once and stored forever. Never lose it — you cannot update an app without the original keystore.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚙️</div>
+        <h3>Fastlane + Bundler</h3>
+        <p>Install: <span class="mono">gem install bundler fastlane</span>. Use Bundler to pin the Fastlane version for reproducible CI builds.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏗</div>
+        <h3>GitHub Actions</h3>
+        <p>Free for public repos, 2000 min/month for private repos. macOS runners (required for iOS builds) cost 10× the Linux rate.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platform publishing steps -->
+  <section>
+    <h2>Publishing — step by step</h2>
+    <div class="platform-grid">
+
+      <!-- iOS -->
+      <div class="platform-col">
+        <div class="platform-header">
+          <div class="platform-icon">🍎</div>
+          <div>
+            <div class="platform-title">iOS → TestFlight → App Store</div>
+            <div class="platform-cost">Requires Apple Developer ($99/yr)</div>
+          </div>
+        </div>
+        <ol class="steps-list">
+          <li>
+            <div class="step-body">
+              Create an App ID in the Apple Developer portal. Match the bundle ID in <span class="mono">ios/Playground.xcodeproj</span>.
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              Create the app record in App Store Connect (name, bundle ID, primary language).
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              Run Fastlane match to set up certificates and provisioning profiles in a private git repo.
+              <div class="note"><span class="mono">bundle exec fastlane match init</span> → choose git → enter private repo URL</div>
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              Generate AppStore certificates:
+              <div class="note"><span class="mono">bundle exec fastlane match appstore</span></div>
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              Build and upload to TestFlight:
+              <div class="note"><span class="mono">bundle exec fastlane ios beta</span></div>
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              In App Store Connect: add testers, fill metadata (description, screenshots, privacy URL), set age rating.
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              Submit for review. First review typically takes 24–72 hours.
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              After approval, release manually or enable automatic release on approval.
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <!-- Android -->
+      <div class="platform-col">
+        <div class="platform-header">
+          <div class="platform-icon">🤖</div>
+          <div>
+            <div class="platform-title">Android → Internal → Play Store</div>
+            <div class="platform-cost">Requires Google Play ($25 one-time)</div>
+          </div>
+        </div>
+        <ol class="steps-list">
+          <li>
+            <div class="step-body">
+              Generate a keystore file once. Store it in a safe place — losing it means you can never update the app.
+              <div class="note"><span class="mono">keytool -genkey -v -keystore release.keystore -alias playground -keyalg RSA -keysize 2048 -validity 10000</span></div>
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              Add keystore config to <span class="mono">android/gradle.properties</span> (use env vars in CI — never commit passwords).
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              Create the app in Google Play Console. Set the package name to match <span class="mono">applicationId</span> in <span class="mono">android/app/build.gradle</span>.
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              Build a signed AAB (App Bundle — required for Play Store):
+              <div class="note"><span class="mono">bundle exec fastlane android build</span></div>
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              Upload to Internal Testing track first. Fastlane supply handles this automatically.
+              <div class="note"><span class="mono">bundle exec fastlane android deploy</span></div>
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              Set up the Play Console service account and download the JSON key for Fastlane supply auth.
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              Fill store listing: description, screenshots (at least one per device type), feature graphic, content rating questionnaire.
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              Promote from Internal → Closed Testing → Open Testing → Production (each can be staged rollout: 10% → 50% → 100%).
+            </div>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- Fastlane config -->
+  <section>
+    <h2>Fastlane configuration</h2>
+
+    <h3>Appfile</h3>
+    <pre><span class="comment"># fastlane/Appfile</span>
+<span class="key">app_identifier</span> <span class="str">"com.yourname.playground"</span>   <span class="comment"># iOS bundle ID</span>
+<span class="key">apple_id</span>        <span class="str">"you@example.com"</span>
+<span class="key">team_id</span>         <span class="str">"XXXXXXXXXX"</span>             <span class="comment"># Apple Developer team ID</span>
+
+<span class="key">json_key_file</span>   <span class="str">"fastlane/play-store-key.json"</span>  <span class="comment"># Android service account</span>
+<span class="key">package_name</span>    <span class="str">"com.yourname.playground"</span>        <span class="comment"># Android applicationId</span></pre>
+
+    <h3>Fastfile — iOS lanes</h3>
+    <pre><span class="comment"># fastlane/Fastfile</span>
+<span class="kw">platform</span> <span class="val">:ios</span> <span class="kw">do</span>
+
+  <span class="kw">lane</span> <span class="val">:certs</span> <span class="kw">do</span>
+    match(<span class="key">type:</span> <span class="str">"appstore"</span>)   <span class="comment"># pull certs from private git repo</span>
+  <span class="kw">end</span>
+
+  <span class="kw">lane</span> <span class="val">:staging</span> <span class="kw">do</span>
+    match(<span class="key">type:</span> <span class="str">"appstore"</span>, <span class="key">readonly:</span> <span class="val">true</span>)
+    increment_build_number(<span class="key">xcodeproj:</span> <span class="str">"ios/Playground.xcodeproj"</span>)
+    build_app(
+      <span class="key">scheme:</span>        <span class="str">"Playground"</span>,
+      <span class="key">configuration:</span> <span class="str">"Staging"</span>,
+      <span class="key">export_method:</span> <span class="str">"app-store"</span>
+    )
+    <span class="comment"># upload_to_testflight  ← uncomment when Apple Dev account ready</span>
+  <span class="kw">end</span>
+
+  <span class="kw">lane</span> <span class="val">:beta</span> <span class="kw">do</span>
+    match(<span class="key">type:</span> <span class="str">"appstore"</span>, <span class="key">readonly:</span> <span class="val">true</span>)
+    increment_build_number(<span class="key">xcodeproj:</span> <span class="str">"ios/Playground.xcodeproj"</span>)
+    build_app(<span class="key">scheme:</span> <span class="str">"Playground"</span>, <span class="key">export_method:</span> <span class="str">"app-store"</span>)
+    upload_to_testflight(<span class="key">skip_waiting_for_build_processing:</span> <span class="val">true</span>)
+    upload_symbols_to_sentry(<span class="key">auth_token:</span> ENV[<span class="str">"SENTRY_AUTH_TOKEN"</span>])
+  <span class="kw">end</span>
+
+<span class="kw">end</span></pre>
+
+    <h3>Fastfile — Android lanes</h3>
+    <pre><span class="kw">platform</span> <span class="val">:android</span> <span class="kw">do</span>
+
+  <span class="kw">lane</span> <span class="val">:build</span> <span class="kw">do</span>
+    gradle(
+      <span class="key">task:</span>           <span class="str">"bundle"</span>,
+      <span class="key">build_type:</span>     <span class="str">"Release"</span>,
+      <span class="key">project_dir:</span>    <span class="str">"android/"</span>,
+      <span class="key">properties:</span> {
+        <span class="str">"android.injected.signing.store.file"</span>     => ENV[<span class="str">"KEYSTORE_PATH"</span>],
+        <span class="str">"android.injected.signing.store.password"</span> => ENV[<span class="str">"KEYSTORE_PASS"</span>],
+        <span class="str">"android.injected.signing.key.alias"</span>      => ENV[<span class="str">"KEY_ALIAS"</span>],
+        <span class="str">"android.injected.signing.key.password"</span>   => ENV[<span class="str">"KEY_PASS"</span>],
+      }
+    )
+  <span class="kw">end</span>
+
+  <span class="kw">lane</span> <span class="val">:deploy</span> <span class="kw">do</span>
+    build
+    supply(
+      <span class="key">track:</span>          <span class="str">"internal"</span>,  <span class="comment"># internal → alpha → beta → production</span>
+      <span class="key">aab:</span>            <span class="str">"android/app/build/outputs/bundle/release/app-release.aab"</span>,
+      <span class="key">json_key:</span>       <span class="str">"fastlane/play-store-key.json"</span>,
+      <span class="key">skip_upload_apk:</span> <span class="val">true</span>
+    )
+  <span class="kw">end</span>
+
+<span class="kw">end</span></pre>
+  </section>
+
+  <!-- CI/CD pipeline diagram -->
+  <section>
+    <h2>CI/CD Pipeline</h2>
+    <div class="diagram">
+      <div class="pipeline">
+
+        <!-- CI -->
+        <div class="pipe-row">
+          <div class="pipe-trigger">Push / PR</div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-jobs">
+            <div class="pipe-job">
+              <div class="job-name">ci.yml — Linux runner</div>
+              <div class="job-steps">yarn lint · yarn tsc --noEmit · yarn test --coverage · yarn audit · bundle size check</div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="pipe-divider" />
+
+        <!-- Staging -->
+        <div class="pipe-row">
+          <div class="pipe-trigger">Merge → main</div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-jobs">
+            <div class="pipe-job">
+              <div class="job-name">staging.yml — macOS runner (iOS) + Linux (Android)</div>
+              <div class="job-steps">fastlane ios staging → .ipa saved as artifact · fastlane android build → .aab saved as artifact</div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="pipe-divider" />
+
+        <!-- Release -->
+        <div class="pipe-row">
+          <div class="pipe-trigger">Git tag v*.*.*</div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-jobs">
+            <div class="pipe-job">
+              <div class="job-name">release.yml — macOS + Linux runners</div>
+              <div class="job-steps">fastlane ios beta → TestFlight · fastlane android deploy → Play Internal · Sentry source maps · code-push OTA</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <h3>GitHub Actions — release.yml skeleton</h3>
+    <pre><span class="key">name:</span> <span class="str">Release</span>
+<span class="key">on:</span>
+  <span class="key">push:</span>
+    <span class="key">tags:</span> [<span class="str">'v*.*.*'</span>]
+
+<span class="key">jobs:</span>
+  <span class="key">ios:</span>
+    <span class="key">runs-on:</span> <span class="str">macos-14</span>
+    <span class="key">steps:</span>
+      - <span class="key">uses:</span> <span class="str">actions/checkout@v4</span>
+      - <span class="key">uses:</span> <span class="str">ruby/setup-ruby@v1</span>
+        <span class="key">with:</span> { <span class="key">bundler-cache:</span> <span class="val">true</span> }
+      - <span class="key">uses:</span> <span class="str">actions/setup-node@v4</span>
+        <span class="key">with:</span> { <span class="key">node-version:</span> <span class="str">'20'</span>, <span class="key">cache:</span> <span class="str">'yarn'</span> }
+      - <span class="key">run:</span> <span class="str">yarn install --frozen-lockfile</span>
+      - <span class="key">run:</span> <span class="str">bundle exec pod install --project-directory=ios</span>
+      - <span class="key">run:</span> <span class="str">bundle exec fastlane ios beta</span>
+        <span class="key">env:</span>
+          <span class="key">MATCH_PASSWORD:</span>      <span class="str">${{ secrets.MATCH_PASSWORD }}</span>
+          <span class="key">MATCH_GIT_BASIC_AUTH:</span><span class="str">${{ secrets.MATCH_GIT_TOKEN }}</span>
+          <span class="key">APP_STORE_CONNECT_API_KEY_KEY:</span> <span class="str">${{ secrets.ASC_API_KEY }}</span>
+          <span class="key">SENTRY_AUTH_TOKEN:</span>   <span class="str">${{ secrets.SENTRY_AUTH_TOKEN }}</span>
+
+  <span class="key">android:</span>
+    <span class="key">runs-on:</span> <span class="str">ubuntu-latest</span>
+    <span class="key">steps:</span>
+      - <span class="key">uses:</span> <span class="str">actions/checkout@v4</span>
+      - <span class="key">uses:</span> <span class="str">ruby/setup-ruby@v1</span>
+        <span class="key">with:</span> { <span class="key">bundler-cache:</span> <span class="val">true</span> }
+      - <span class="key">uses:</span> <span class="str">actions/setup-node@v4</span>
+        <span class="key">with:</span> { <span class="key">node-version:</span> <span class="str">'20'</span>, <span class="key">cache:</span> <span class="str">'yarn'</span> }
+      - <span class="key">run:</span> <span class="str">yarn install --frozen-lockfile</span>
+      - <span class="key">run:</span> <span class="str">bundle exec fastlane android deploy</span>
+        <span class="key">env:</span>
+          <span class="key">KEYSTORE_PATH:</span> <span class="str">${{ secrets.KEYSTORE_PATH }}</span>
+          <span class="key">KEYSTORE_PASS:</span> <span class="str">${{ secrets.KEYSTORE_PASS }}</span>
+          <span class="key">KEY_ALIAS:</span>    <span class="str">${{ secrets.KEY_ALIAS }}</span>
+          <span class="key">KEY_PASS:</span>     <span class="str">${{ secrets.KEY_PASS }}</span></pre>
+  </section>
+
+  <!-- Required secrets -->
+  <section>
+    <h2>GitHub Secrets to configure</h2>
+    <table>
+      <thead><tr><th>Secret</th><th>Platform</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr><td class="mono path">MATCH_PASSWORD</td><td><span class="tag tag-ios">iOS</span></td><td>Encryption password for the match certificates git repo</td></tr>
+        <tr><td class="mono path">MATCH_GIT_TOKEN</td><td><span class="tag tag-ios">iOS</span></td><td>GitHub PAT with read access to your private match repo</td></tr>
+        <tr><td class="mono path">ASC_API_KEY</td><td><span class="tag tag-ios">iOS</span></td><td>App Store Connect API key (p8 file contents). Generate in Users &amp; Access → Integrations</td></tr>
+        <tr><td class="mono path">ASC_API_KEY_ID</td><td><span class="tag tag-ios">iOS</span></td><td>Key ID shown when you create the API key</td></tr>
+        <tr><td class="mono path">ASC_API_ISSUER_ID</td><td><span class="tag tag-ios">iOS</span></td><td>Issuer ID from App Store Connect → Users &amp; Access</td></tr>
+        <tr><td class="mono path">KEYSTORE_PATH</td><td><span class="tag tag-android">Android</span></td><td>Path to the .keystore file (or base64-encode and decode in CI)</td></tr>
+        <tr><td class="mono path">KEYSTORE_PASS</td><td><span class="tag tag-android">Android</span></td><td>Keystore password set during <span class="mono">keytool -genkey</span></td></tr>
+        <tr><td class="mono path">KEY_ALIAS</td><td><span class="tag tag-android">Android</span></td><td>Key alias set during <span class="mono">keytool -genkey</span></td></tr>
+        <tr><td class="mono path">KEY_PASS</td><td><span class="tag tag-android">Android</span></td><td>Key password set during <span class="mono">keytool -genkey</span></td></tr>
+        <tr><td class="mono path">PLAY_STORE_JSON_KEY</td><td><span class="tag tag-android">Android</span></td><td>Service account JSON key downloaded from Google Play Console → Setup → API access</td></tr>
+        <tr><td class="mono path">SENTRY_AUTH_TOKEN</td><td><span class="tag tag-both">Both</span></td><td>Sentry auth token for uploading source maps (Settings → Auth Tokens)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Store metadata checklist -->
+  <section>
+    <h2>Store submission checklist</h2>
+    <div class="platform-grid">
+      <div class="platform-col">
+        <div class="platform-header">
+          <div class="platform-icon">🍎</div>
+          <div><div class="platform-title">App Store Connect</div></div>
+        </div>
+        <ul style="list-style:none;font-size:13px;line-height:2;color:#cbd5e1;">
+          <li>☐ App name (max 30 chars)</li>
+          <li>☐ Subtitle (max 30 chars)</li>
+          <li>☐ Description (max 4000 chars)</li>
+          <li>☐ Keywords (max 100 chars, comma-separated)</li>
+          <li>☐ Support URL</li>
+          <li>☐ Privacy Policy URL (required)</li>
+          <li>☐ Screenshots: iPhone 6.9" + iPad 13" (required)</li>
+          <li>☐ App icon 1024×1024 PNG (no alpha)</li>
+          <li>☐ Age rating questionnaire</li>
+          <li>☐ Sign-in credentials for reviewer (if auth required)</li>
+          <li>☐ Export compliance — does app use encryption?</li>
+        </ul>
+      </div>
+      <div class="platform-col">
+        <div class="platform-header">
+          <div class="platform-icon">🤖</div>
+          <div><div class="platform-title">Google Play Console</div></div>
+        </div>
+        <ul style="list-style:none;font-size:13px;line-height:2;color:#cbd5e1;">
+          <li>☐ Short description (max 80 chars)</li>
+          <li>☐ Full description (max 4000 chars)</li>
+          <li>☐ App icon 512×512 PNG</li>
+          <li>☐ Feature graphic 1024×500 PNG</li>
+          <li>☐ Screenshots: Phone + 7" tablet (required)</li>
+          <li>☐ Privacy Policy URL (required)</li>
+          <li>☐ Content rating questionnaire</li>
+          <li>☐ App category</li>
+          <li>☐ Data safety form (what data is collected, shared)</li>
+          <li>☐ Target audience age</li>
+          <li>☐ Test track promoted to production with release notes</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key callouts -->
+  <section>
+    <h2>Critical warnings</h2>
+
+    <div class="callout callout-warn">
+      <strong>Never lose your Android keystore.</strong> Google does not allow key resets. If you lose the keystore you must publish a new app with a new package name. Store it in a password manager or encrypted backup — not only in the CI environment.
+    </div>
+
+    <div class="callout callout-warn">
+      <strong>iOS keychain on first install.</strong> iOS Keychain data survives app uninstall. A reinstall from a different user may auto-read the previous user's token. Call <span class="mono">Keychain.resetGenericPassword()</span> on first launch after fresh install (check an MMKV flag to detect this).
+    </div>
+
+    <div class="callout callout-warn">
+      <strong>Never OTA-update native code.</strong> code-push / EAS Update only patches the JS bundle. If your update includes changes to native modules, run a full store release instead — an OTA native mismatch crashes on launch.
+    </div>
+
+    <div class="callout callout-info">
+      <strong>Build numbers must always increase.</strong> App Store and Play Store reject builds with a build number equal to or lower than a previously uploaded build. Fastlane's <span class="mono">increment_build_number</span> handles iOS. For Android, increment <span class="mono">versionCode</span> in <span class="mono">build.gradle</span> or use Fastlane's <span class="mono">android_set_version_code</span>.
+    </div>
+
+    <div class="callout callout-info">
+      <strong>macOS runners are expensive.</strong> GitHub-hosted macOS runners consume 10 minutes of quota per 1 minute of wall time. Only run the iOS build on tag pushes — not on every PR — to stay within the free tier or control costs.
+    </div>
+
+    <div class="callout callout-ok">
+      <strong>Until you have store accounts,</strong> the <span class="mono">staging.yml</span> workflow saves the .ipa and .aab as GitHub Actions artifacts. Download them from the Actions tab and install manually via Xcode Devices (iOS) or <span class="mono">adb install</span> (Android).
+    </div>
+  </section>
+
+  <!-- Files -->
+  <section>
+    <h2>Files added in this step</h2>
+    <table>
+      <thead><tr><th>File</th><th>Tag</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="path mono">fastlane/Appfile</td><td><span class="tag tag-new">new</span></td><td>App identifiers, Apple team ID, Play Store JSON key path</td></tr>
+        <tr><td class="path mono">fastlane/Fastfile</td><td><span class="tag tag-new">new</span></td><td>iOS and Android lanes: certs, staging, beta, build, deploy</td></tr>
+        <tr><td class="path mono">fastlane/Matchfile</td><td><span class="tag tag-new">new</span></td><td>match config: git_url, app_identifier, type</td></tr>
+        <tr><td class="path mono">Gemfile</td><td><span class="tag tag-new">new</span></td><td>Pins fastlane + plugins version for reproducible CI builds</td></tr>
+        <tr><td class="path mono">.github/workflows/ci.yml</td><td><span class="tag tag-new">new</span></td><td>PR gate: lint, typecheck, tests, coverage, audit, bundle size</td></tr>
+        <tr><td class="path mono">.github/workflows/staging.yml</td><td><span class="tag tag-new">new</span></td><td>On merge to main: build .ipa + .aab, save as artifacts</td></tr>
+        <tr><td class="path mono">.github/workflows/release.yml</td><td><span class="tag tag-new">new</span></td><td>On git tag: TestFlight + Play Internal + Sentry maps + OTA</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Footer -->
+  <div class="footer">
+    Step 8 of 32 · Next: <strong>Step 9 — Detox E2E for auth and navigation</strong>
+  </div>
+
+</body>
+</html>
