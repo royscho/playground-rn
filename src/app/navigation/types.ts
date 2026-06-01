@@ -31,7 +31,6 @@ export type AppDrawerParamList = {
 };
 
 export type HomeTabsParamList = {
-  Dashboard: undefined;
   Feed: undefined;
   Explore: undefined;
   Settings: undefined;

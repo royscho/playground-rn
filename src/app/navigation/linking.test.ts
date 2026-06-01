@@ -7,9 +7,9 @@ describe('linking config', () => {
 
   const drawerScreens = linking.config?.screens?.AppDrawer as { screens: Record<string, unknown> };
 
-  it('maps dashboard to HomeTabs > Dashboard', () => {
+  it('maps feed to HomeTabs > Feed', () => {
     const homeTabs = drawerScreens.screens.HomeTabs as { screens: Record<string, string> };
-    expect(homeTabs.screens.Dashboard).toBe('dashboard');
+    expect(homeTabs.screens.Feed).toBe('feed');
   });
 
   it('maps posts/:id to PostDetail', () => {

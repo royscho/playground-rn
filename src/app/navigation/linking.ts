@@ -9,7 +9,6 @@ export const linking: LinkingOptions<RootStackParamList> = {
         screens: {
           HomeTabs: {
             screens: {
-              Dashboard: 'dashboard',
               Feed: 'feed',
               Explore: 'explore',
               Settings: 'settings',
