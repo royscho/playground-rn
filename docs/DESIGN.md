@@ -563,8 +563,8 @@ Each step = one focused commit. Build in order — each step depends on the prev
 | 5   | `feat: social auth with Google and Apple sign-in`                 | @react-native-google-signin, @invertase/react-native-apple-authentication, Firebase Auth free tier, mocked Apple flow for local dev                                                   |
 | 6   | `feat: posts CRUD with optimistic updates`                        | useQuery (PostDetail), useMutation create/delete, optimistic updates with rollback — useInfiniteQuery + client.ts already done in step 4                                              |
 | 7   | `ci: GitHub Actions and Fastlane lanes`                           | ci.yml (lint, typecheck, tests, coverage gate, audit, bundle size), staging.yml + release.yml (Fastlane build → GitHub artifact), Sentry source maps upload, OTA via code-push-server |
-| 8  | `test: Detox E2E for auth and navigation`                         | Detox config, device/emulator tests, CI E2E job                                                                                                                                       |
-| 9  | `feat: push notifications and permissions`                        | FCM + APNs, @notifee channels + actions, react-native-permissions flow                                                                                                                |
+| 8   | `test: Detox E2E for auth and navigation`                         | Detox config, device/emulator tests, CI E2E job                                                                                                                                       |
+| 9   | `feat: push notifications and permissions`                        | FCM + APNs, @notifee channels + actions, react-native-permissions flow                                                                                                                |
 
 ### Optional Steps
 
