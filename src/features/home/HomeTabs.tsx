@@ -1,11 +1,12 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { LayoutDashboard, Rss, Compass } from 'lucide-react-native';
+import { LayoutDashboard, Rss, Compass, Settings } from 'lucide-react-native';
 import type { HomeTabsParamList } from '@/app/navigation/types';
 import { useAppTheme } from '@/shared/hooks';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { FeedScreen } from './screens/FeedScreen';
 import { ExploreScreen } from './screens/ExploreScreen';
+import { SettingsScreen } from '@/features/settings';
 
 const Tab = createBottomTabNavigator<HomeTabsParamList>();
 
@@ -19,6 +20,9 @@ const feedIcon = ({ color }: { color: string }) => (
 );
 const exploreIcon = ({ color }: { color: string }) => (
   <Compass size={TAB_ICON_SIZE} color={color} />
+);
+const settingsIcon = ({ color }: { color: string }) => (
+  <Settings size={TAB_ICON_SIZE} color={color} />
 );
 
 export const HomeTabs = () => {
@@ -55,6 +59,11 @@ export const HomeTabs = () => {
         name="Explore"
         component={ExploreScreen}
         options={{ tabBarIcon: exploreIcon }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ tabBarIcon: settingsIcon }}
       />
     </Tab.Navigator>
   );

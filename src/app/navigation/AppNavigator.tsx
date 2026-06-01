@@ -13,7 +13,6 @@ import { RealtimeScreen } from '@/features/realtime';
 import { WebViewScreen } from '@/features/webview';
 import { NotificationsScreen } from '@/features/notifications';
 import { PerformanceScreen } from '@/features/performance';
-import { SettingsScreen } from '@/features/settings';
 import { NativeModulesScreen } from '@/features/native-modules';
 import { JavaScriptScreen } from '@/features/javascript';
 import { HooksScreen } from '@/features/hooks';
@@ -72,7 +71,6 @@ export const AppNavigator = () => {
       <Drawer.Screen name="WebView" component={WebViewScreen} />
       <Drawer.Screen name="Notifications" component={NotificationsScreen} />
       <Drawer.Screen name="Performance" component={PerformanceScreen} />
-      <Drawer.Screen name="Settings" component={SettingsScreen} />
       <Drawer.Screen
         name="NativeModules"
         component={NativeModulesScreen}

@@ -17,7 +17,8 @@ describe('linking config', () => {
     expect(posts.screens.PostDetail).toBe('posts/:id');
   });
 
-  it('maps settings', () => {
-    expect(drawerScreens.screens.Settings).toBe('settings');
+  it('maps settings via HomeTabs', () => {
+    const homeTabs = drawerScreens.screens.HomeTabs as { screens: Record<string, string> };
+    expect(homeTabs.screens.Settings).toBe('settings');
   });
 });

@@ -20,7 +20,6 @@ export type AppDrawerParamList = {
   WebView: undefined;
   Notifications: undefined;
   Performance: undefined;
-  Settings: undefined;
   NativeModules: undefined;
   JavaScript: undefined;
   Hooks: undefined;
@@ -35,6 +34,7 @@ export type HomeTabsParamList = {
   Dashboard: undefined;
   Feed: undefined;
   Explore: undefined;
+  Settings: undefined;
 };
 
 export type PostsStackParamList = {

@@ -12,6 +12,7 @@ export const linking: LinkingOptions<RootStackParamList> = {
               Dashboard: 'dashboard',
               Feed: 'feed',
               Explore: 'explore',
+              Settings: 'settings',
             },
           },
           Posts: {
@@ -21,7 +22,6 @@ export const linking: LinkingOptions<RootStackParamList> = {
             },
           },
           Todos: 'todos',
-          Settings: 'settings',
           Animations: 'animations',
           Forms: 'forms',
           Realtime: 'realtime',
