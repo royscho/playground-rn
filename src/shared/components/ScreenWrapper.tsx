@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { ChevronLeft, Menu } from 'lucide-react-native';
 import type { EdgeInsets } from 'react-native-safe-area-context';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
@@ -110,7 +111,7 @@ export const ScreenWrapper = ({
                 accessibilityRole="button"
                 accessibilityLabel="Go back"
               >
-                <Text style={styles.backChevron}>‹</Text>
+                <ChevronLeft size={24} color={colors.primary} />
               </TouchableOpacity>
             ) : canOpenDrawer ? (
               <TouchableOpacity
@@ -119,7 +120,7 @@ export const ScreenWrapper = ({
                 accessibilityRole="button"
                 accessibilityLabel="Open menu"
               >
-                <Text style={styles.menuIcon}>☰</Text>
+                <Menu size={22} color={colors.text} />
               </TouchableOpacity>
             ) : null}
           </View>
@@ -199,14 +200,6 @@ const createStyles = (
     },
     backButton: {
       padding: spacing.xs,
-    },
-    backChevron: {
-      fontSize: typography.h2.fontSize,
-      color: colors.primary,
-    },
-    menuIcon: {
-      fontSize: typography.h3.fontSize,
-      color: colors.text,
     },
     titleText: {
       ...typography.h3,
