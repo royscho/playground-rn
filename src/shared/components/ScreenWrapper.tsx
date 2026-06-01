@@ -57,7 +57,10 @@ export const ScreenWrapper = ({
   const navigation = useNavigation();
   const styles = createStyles(colors, spacing, typography, insets, padded, centered);
 
+  const canGoBack = navigation.canGoBack();
+
   const canOpenDrawer = (() => {
+    if (canGoBack) return false;
     try {
       let nav = navigation.getParent();
       while (nav) {
@@ -104,7 +107,7 @@ export const ScreenWrapper = ({
       {showHeader && (
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            {showBackButton ? (
+            {showBackButton || canGoBack ? (
               <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => navigation.goBack()}
