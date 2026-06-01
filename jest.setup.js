@@ -16,6 +16,8 @@ jest.mock('react-native-mmkv', () => {
   const store = new Map();
   const mockInstance = {
     getString: jest.fn((key) => store.get(key) ?? undefined),
+    getBoolean: jest.fn((key) => store.get(key) ?? undefined),
+    getNumber: jest.fn((key) => store.get(key) ?? undefined),
     set: jest.fn((key, value) => store.set(key, value)),
     remove: jest.fn((key) => store.delete(key)),
     clearAll: jest.fn(() => store.clear()),
@@ -29,3 +31,21 @@ jest.mock('react-native-mmkv', () => {
     useMMKVNumber: jest.fn(),
   };
 });
+
+jest.mock('react-native-config', () => ({
+  default: {
+    API_BASE_URL: 'https://jsonplaceholder.typicode.com',
+    APP_ENV: 'development',
+    SENTRY_DSN: '',
+    SENTRY_ORG: '',
+    SENTRY_PROJECT: '',
+    CODEPUSH_SERVER_URL: '',
+    SOCKET_IO_URL: '',
+  },
+}));
+
+jest.mock('react-native-keychain', () => ({
+  setGenericPassword: jest.fn(() => Promise.resolve(true)),
+  getGenericPassword: jest.fn(() => Promise.resolve(false)),
+  resetGenericPassword: jest.fn(() => Promise.resolve(true)),
+}));

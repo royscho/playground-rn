@@ -6,6 +6,7 @@ import {
 import { queryClient } from '@/shared/api/queryClient';
 import reactotronZustand from 'reactotron-plugin-zustand';
 import { useThemeStore } from '@/features/settings/store/themeStore';
+import { useAuthStore } from '@/features/auth';
 
 const queryClientManager = new QueryClientManager({
   // @ts-ignore
@@ -22,8 +23,8 @@ Reactotron.configure({
   .use(
     reactotronZustand({
       stores: [
+        { name: 'auth', store: useAuthStore },
         { name: 'theme', store: useThemeStore },
-        // { name: 'auth', store: useAuthStore },
       ],
     }),
   )

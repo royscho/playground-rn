@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Step 4 — Auth, Keychain & Route Guards</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f1117; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 40px 24px; max-width: 900px; margin: 0 auto; }
+    code, .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+
+    .badge { display: inline-block; background: #6C63FF22; color: #6C63FF; border: 1px solid #6C63FF55; border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }
+    h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #94A3B8; font-size: 16px; margin-bottom: 16px; }
+    .commit-chip { display: inline-block; background: #1a1f2e; border: 1px solid #2d3748; border-radius: 6px; padding: 6px 12px; font-size: 13px; color: #6C63FF; }
+    .header { margin-bottom: 48px; }
+
+    h2 { font-size: 18px; font-weight: 600; color: #e2e8f0; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #2d3748; }
+    section { margin-bottom: 48px; }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .card { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 12px; padding: 20px; }
+    .card-icon { font-size: 24px; margin-bottom: 12px; }
+    .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .card p { font-size: 13px; color: #94A3B8; line-height: 1.5; }
+
+    /* Diagram */
+    .diagram { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 12px; padding: 24px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+    .flow-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+    .flow-box { background: #0f1117; border: 1px solid #2d3748; border-radius: 6px; padding: 4px 10px; color: #e2e8f0; white-space: nowrap; }
+    .flow-box.purple { border-color: #6C63FF55; color: #6C63FF; background: #6C63FF11; }
+    .flow-box.green { border-color: #4ade8055; color: #4ade80; background: #4ade8011; }
+    .flow-box.yellow { border-color: #facc1555; color: #facc15; background: #facc1511; }
+    .flow-box.red { border-color: #f8717155; color: #f87171; background: #f8717111; }
+    .flow-box.blue { border-color: #60a5fa55; color: #60a5fa; background: #60a5fa11; }
+    .arrow { color: #475569; }
+    .flow-label { font-size: 11px; color: #64748B; margin-left: 8px; }
+    .divider { border: none; border-top: 1px solid #2d3748; margin: 12px 0; }
+
+    /* Files table */
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 12px; font-size: 12px; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #2d3748; }
+    td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #1a1f2e; vertical-align: top; }
+    td:first-child { font-family: 'SF Mono', 'Fira Code', monospace; color: #94A3B8; }
+    td:last-child { color: #64748B; }
+    .tag { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 4px; padding: 2px 7px; }
+    .tag-new { background: #4ade8022; color: #4ade80; border: 1px solid #4ade8044; }
+    .tag-mod { background: #facc1522; color: #facc15; border: 1px solid #facc1544; }
+
+    .footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #2d3748; color: #475569; font-size: 13px; }
+    .footer strong { color: #94A3B8; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="badge">Step 4 of 32</div>
+    <h1>Auth, Keychain & Route Guards</h1>
+    <p class="subtitle">Mock email/password auth with Zustand, secure token in keychain, and protected navigation</p>
+    <div class="commit-chip">feat(auth): Zustand auth store, keychain token storage, and protected routes</div>
+  </div>
+
+  <section>
+    <h2>What was built</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">🔐</div>
+        <h3>Keychain Token Storage</h3>
+        <p>Auth token stored in iOS Keychain / Android Keystore only. MMKV holds non-sensitive user profile. Restored from keychain on rehydrate.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏪</div>
+        <h3>Zustand Auth Store</h3>
+        <p>Persisted user profile in MMKV via <code>partialize</code>. Token excluded from persistence — lives in keychain. Named actions for DevTools.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔄</div>
+        <h3>401 Refresh Queue</h3>
+        <p>API client queues in-flight requests on 401. Retries all after token refresh. On refresh failure: clears queue + calls logout.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧭</div>
+        <h3>Route Guard</h3>
+        <p>RootNavigator reads token from store. Mounts AuthStack when null, AppDrawer when authenticated. Transition is instant — no loading screen.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h3>useMutation Auth</h3>
+        <p>Login and register use TanStack Query <code>useMutation</code>. Screens read <code>isPending</code> and <code>error</code> — no local loading state.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">∞</div>
+        <h3>Infinite Scroll Feed</h3>
+        <p><code>useInfiniteQuery</code> on FeedScreen. Paginated JSONPlaceholder posts with FlatList, end-reached trigger, and footer spinner.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Auth flow</h2>
+    <div class="diagram">
+      <p style="color:#64748B; font-size:12px; margin-bottom:16px;">App startup — token rehydration</p>
+      <div class="flow-row"><div class="flow-box">App boots</div><span class="arrow">→</span><div class="flow-box purple">MMKV rehydrate</div><span class="arrow">→</span><div class="flow-box yellow">user restored</div></div>
+      <div class="flow-row" style="margin-left:120px"><span class="arrow">→</span><div class="flow-box blue">Keychain.getGenericPassword()</div><span class="arrow">→</span><div class="flow-box green">token restored</div></div>
+      <div class="flow-row" style="margin-left:120px"><span class="arrow">→</span><div class="flow-box red">no keychain entry</div><span class="arrow">→</span><div class="flow-box">logout() — re-login</div></div>
+      <hr class="divider" />
+      <p style="color:#64748B; font-size:12px; margin-bottom:16px;">Login / Register flow</p>
+      <div class="flow-row"><div class="flow-box">submit</div><span class="arrow">→</span><div class="flow-box purple">useMutation</div><span class="arrow">→</span><div class="flow-box yellow">mockLogin() 800ms</div></div>
+      <div class="flow-row" style="margin-left:148px"><span class="arrow">→</span><div class="flow-box green">onSuccess</div><span class="arrow">→</span><div class="flow-box blue">Keychain.set()</div><span class="arrow">→</span><div class="flow-box">authStore.login()</div></div>
+      <div class="flow-row" style="margin-left:148px"><span class="arrow">→</span><div class="flow-box">token set</div><span class="arrow">→</span><div class="flow-box green">AppDrawer mounted</div></div>
+      <hr class="divider" />
+      <p style="color:#64748B; font-size:12px; margin-bottom:16px;">401 refresh queue</p>
+      <div class="flow-row"><div class="flow-box red">401 response</div><span class="arrow">→</span><div class="flow-box yellow">queue requests</div><span class="arrow">→</span><div class="flow-box purple">refreshToken()</div></div>
+      <div class="flow-row" style="margin-left:148px"><span class="arrow">→</span><div class="flow-box green">success → retry all</div></div>
+      <div class="flow-row" style="margin-left:148px"><span class="arrow">→</span><div class="flow-box red">fail → reject all + logout()</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Files</h2>
+    <table>
+      <thead><tr><th>File</th><th>Tag</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>src/features/auth/store/authStore.ts</td><td><span class="tag tag-new">new</span></td><td>Zustand store — user in MMKV, token in keychain, client interceptors wired on rehydrate</td></tr>
+        <tr><td>src/features/auth/types/auth.types.ts</td><td><span class="tag tag-new">new</span></td><td>User and AuthError interfaces</td></tr>
+        <tr><td>src/features/auth/api/auth.api.ts</td><td><span class="tag tag-new">new</span></td><td>mockLogin / mockRegister with 800ms delay and field-level validation</td></tr>
+        <tr><td>src/features/auth/hooks/useLogin.ts</td><td><span class="tag tag-new">new</span></td><td>useMutation — keychain write, store dispatch, error propagation</td></tr>
+        <tr><td>src/features/auth/hooks/useRegister.ts</td><td><span class="tag tag-new">new</span></td><td>useMutation — same pattern as useLogin with name field</td></tr>
+        <tr><td>src/features/auth/hooks/useLogout.ts</td><td><span class="tag tag-new">new</span></td><td>Soft-fail keychain reset + store clear</td></tr>
+        <tr><td>src/features/auth/screens/LoginScreen.tsx</td><td><span class="tag tag-mod">mod</span></td><td>Full login form — mutation isPending/error, per-field error highlight</td></tr>
+        <tr><td>src/features/auth/screens/RegisterScreen.tsx</td><td><span class="tag tag-mod">mod</span></td><td>Full register form — name + email + password</td></tr>
+        <tr><td>src/shared/api/client.ts</td><td><span class="tag tag-new">new</span></td><td>Fetch wrapper — base URL, auth header, 401 refresh queue</td></tr>
+        <tr><td>src/app/navigation/RootNavigator.tsx</td><td><span class="tag tag-mod">mod</span></td><td>Auth gate — AuthStack vs AppDrawer based on token, first-launch keychain reset</td></tr>
+        <tr><td>src/app/navigation/types.ts</td><td><span class="tag tag-mod">mod</span></td><td>Added AuthStack to RootStackParamList</td></tr>
+        <tr><td>src/features/home/hooks/useFeedPosts.ts</td><td><span class="tag tag-new">new</span></td><td>useInfiniteQuery — paginated JSONPlaceholder posts, 10 per page</td></tr>
+        <tr><td>src/features/home/components/PostCard.tsx</td><td><span class="tag tag-new">new</span></td><td>Post card UI — all tokens from useAppTheme()</td></tr>
+        <tr><td>src/features/home/screens/FeedScreen.tsx</td><td><span class="tag tag-mod">mod</span></td><td>FlatList with infinite scroll, footer spinner, end-of-feed state</td></tr>
+        <tr><td>ReactotronConfig.ts</td><td><span class="tag tag-mod">mod</span></td><td>Added auth store to Reactotron Zustand plugin</td></tr>
+        <tr><td>jest.setup.js</td><td><span class="tag tag-mod">mod</span></td><td>Added mocks for react-native-keychain and react-native-config</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="footer">
+    Step 4 of 32 · Next: <strong>Step 5 — Social auth with Google and Apple sign-in</strong>
+  </div>
+
+</body>
+</html>

@@ -1,8 +1,8 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 
 export type RootStackParamList = {
+  AuthStack: NavigatorScreenParams<AuthStackParamList>;
   AppDrawer: NavigatorScreenParams<AppDrawerParamList>;
-  // AuthStack added in step 4
 };
 
 export type AuthStackParamList = {
