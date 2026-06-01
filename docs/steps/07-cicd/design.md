@@ -1,55 +1,60 @@
-# Step 8 — CI/CD, GitHub Actions & Fastlane
+# Step 7 — CI/CD, GitHub Actions & Fastlane
 
 ## Task
+
 Wire up three GitHub Actions workflows (PR CI, staging deploy, release deploy), Fastlane lanes for iOS and Android, multi-variant builds (separate bundle ID + app name per env), and typed env schema via react-native-config.
 
 ## Files to create / modify
 
-| File | Status |
-|---|---|
-| `.github/workflows/ci.yml` | new |
-| `.github/workflows/staging.yml` | new |
-| `.github/workflows/release.yml` | new |
-| `fastlane/Fastfile` | new |
-| `fastlane/Appfile` | new |
-| `Gemfile` | modified (add `fastlane`) |
-| `.env` | modified (extend schema) |
-| `.env.staging` | modified (extend schema) |
-| `.env.production` | modified (extend schema) |
-| `src/shared/types/env.d.ts` | new |
-| `android/app/build.gradle` | modified (add product flavors) |
-| `android/app/src/staging/res/values/strings.xml` | new |
-| `android/app/src/production/res/values/strings.xml` | new |
-| `docs/steps/08-cicd/design.md` | new |
+| File                                                | Status                         |
+| --------------------------------------------------- | ------------------------------ |
+| `.github/workflows/ci.yml`                          | new                            |
+| `.github/workflows/staging.yml`                     | new                            |
+| `.github/workflows/release.yml`                     | new                            |
+| `fastlane/Fastfile`                                 | new                            |
+| `fastlane/Appfile`                                  | new                            |
+| `Gemfile`                                           | modified (add `fastlane`)      |
+| `.env`                                              | modified (extend schema)       |
+| `.env.staging`                                      | modified (extend schema)       |
+| `.env.production`                                   | modified (extend schema)       |
+| `src/shared/types/env.d.ts`                         | new                            |
+| `android/app/build.gradle`                          | modified (add product flavors) |
+| `android/app/src/staging/res/values/strings.xml`    | new                            |
+| `android/app/src/production/res/values/strings.xml` | new                            |
+| `docs/steps/08-cicd/design.md`                      | new                            |
 
 iOS build configurations (Staging + Release) are set up via a Fastlane `setup_ios_configs` lane using the `xcodeproj` gem (already in Gemfile). Run once locally — not part of CI.
 
 ## ScreenWrapper config
+
 N/A — no UI screens in this step.
 
 ## State approach
+
 N/A — no app state changes.
 
 ## Props drilling check
+
 N/A.
 
 ## Navigation wiring
+
 None.
 
 ## Libraries used
 
-| Need | Tool |
-|---|---|
-| iOS build automation | Fastlane `build_app`, `upload_to_testflight`, `increment_build_number` |
-| Android build automation | Fastlane `gradle` action |
-| iOS multi-variant | Xcode build configurations (Staging / Release) via `xcodeproj` gem |
-| Android multi-variant | Gradle product flavors (`staging`, `production`) |
-| Code signing (iOS) | Fastlane `match` (commented — requires Apple Dev account) |
-| Sentry source maps | `upload_symbols_to_sentry` Fastlane action |
-| CI runtime | GitHub Actions (`ubuntu-latest` for Android/JS; `macos-latest` for iOS/bundle) |
-| Env switching | `react-native-config` + `ENVFILE` env var |
-| Dependency audit | `yarn audit` |
-| Coverage gate | Jest `--coverageThreshold` |
+| Need                     | Tool                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------ |
+| iOS build automation     | Fastlane `build_app`, `upload_to_testflight`, `increment_build_number`         |
+| Android build automation | Fastlane `gradle` action                                                       |
+| iOS multi-variant        | Xcode build configurations (Staging / Release) via `xcodeproj` gem             |
+| Android multi-variant    | Gradle product flavors (`staging`, `production`)                               |
+| Code signing (iOS)       | Fastlane `match` (commented — requires Apple Dev account)                      |
+| Sentry source maps       | `upload_symbols_to_sentry` Fastlane action                                     |
+| CI runtime               | GitHub Actions (`ubuntu-latest` for Android/JS; `macos-latest` for iOS/bundle) |
+| Env switching            | `react-native-config` + `ENVFILE` env var                                      |
+| Dependency audit         | `yarn audit`                                                                   |
+| Coverage gate            | Jest `--coverageThreshold`                                                     |
 
 ## Env schema
 
@@ -92,10 +97,10 @@ Vars also available natively on iOS via `Info.plist` `$(VAR_NAME)` references �
 
 Two configurations in `ios/Playground.xcodeproj`:
 
-| Config | Bundle ID | Display name |
-|---|---|---|
+| Config    | Bundle ID                | Display name   |
+| --------- | ------------------------ | -------------- |
 | `Staging` | `com.playground.staging` | Playground STG |
-| `Release` | `com.playground` | Playground |
+| `Release` | `com.playground`         | Playground     |
 
 Set up via `fastlane ios setup_ios_configs` (one-time, local only). Uses the `xcodeproj` gem to duplicate the Release configuration and set per-config bundle ID + display name overrides in `Info.plist`.
 
@@ -126,6 +131,7 @@ productFlavors {
 Staging build task: `bundleStagingRelease`. Production build task: `bundleProductionRelease`.
 
 Per-flavor `strings.xml` overrides app name (backup for launchers that read it directly):
+
 - `android/app/src/staging/res/values/strings.xml` → `<string name="app_name">Playground STG</string>`
 - `android/app/src/production/res/values/strings.xml` → `<string name="app_name">Playground</string>`
 
@@ -235,19 +241,21 @@ gem 'fastlane'
 
 None required for CI (lint/test/typecheck/bundle). Staging and release lanes need:
 
-| Secret | Used in |
-|---|---|
-| `APPLE_ID` | Fastlane Appfile |
-| `APPLE_TEAM_ID` | Fastlane Appfile |
-| `MATCH_PASSWORD` | Fastlane match (when enabled) |
-| `SENTRY_AUTH_TOKEN` | Sentry source map upload |
-| `SENTRY_ORG` | Sentry source map upload |
-| `SENTRY_PROJECT` | Sentry source map upload |
+| Secret              | Used in                       |
+| ------------------- | ----------------------------- |
+| `APPLE_ID`          | Fastlane Appfile              |
+| `APPLE_TEAM_ID`     | Fastlane Appfile              |
+| `MATCH_PASSWORD`    | Fastlane match (when enabled) |
+| `SENTRY_AUTH_TOKEN` | Sentry source map upload      |
+| `SENTRY_ORG`        | Sentry source map upload      |
+| `SENTRY_PROJECT`    | Sentry source map upload      |
 
 All upload/signing steps commented by default — CI and local lanes run without secrets.
 
 ## Dark/light mode
+
 N/A.
 
 ## Commit message
+
 `ci: GitHub Actions workflows, Fastlane lanes, and multi-variant builds`
