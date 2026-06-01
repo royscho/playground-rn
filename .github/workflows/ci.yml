@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.11'
+          node-version: '22.13'
           cache: 'yarn'
       - run: yarn install --frozen-lockfile
       - run: yarn lint
@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.11'
+          node-version: '22.13'
           cache: 'yarn'
       - run: yarn install --frozen-lockfile
       - run: yarn tsc --noEmit
@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.11'
+          node-version: '22.13'
           cache: 'yarn'
       - run: yarn install --frozen-lockfile
       - run: yarn test --ci --coverage --coverageThreshold='{"global":{"lines":70}}'
@@ -46,7 +46,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.11'
+          node-version: '22.13'
           cache: 'yarn'
       - run: yarn install --frozen-lockfile
       - run: yarn audit --level moderate
@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.11'
+          node-version: '22.13'
           cache: 'yarn'
       - run: yarn install --frozen-lockfile
       - name: Bundle size report (informational)
