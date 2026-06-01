@@ -1,0 +1,58 @@
+name: Staging
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.11'
+          cache: 'yarn'
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - run: yarn install --frozen-lockfile
+      - run: bundle exec pod install --project-directory=ios
+      - name: Build iOS staging
+        env:
+          ENVFILE: .env.staging
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: bundle exec fastlane ios staging
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-staging
+          path: '*.ipa'
+          if-no-files-found: warn
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.11'
+          cache: 'yarn'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - run: yarn install --frozen-lockfile
+      - name: Build Android staging
+        env:
+          ENVFILE: .env.staging
+        run: bundle exec fastlane android staging
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-staging
+          path: android/app/build/outputs/bundle/stagingRelease/*.aab
+          if-no-files-found: warn

@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.11'
+          cache: 'yarn'
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - run: yarn install --frozen-lockfile
+      - run: bundle exec pod install --project-directory=ios
+      - name: Build iOS release
+        env:
+          ENVFILE: .env.production
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: bundle exec fastlane ios beta
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-release
+          path: '*.ipa'
+          if-no-files-found: warn
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.11'
+          cache: 'yarn'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - run: yarn install --frozen-lockfile
+      - name: Build Android release
+        env:
+          ENVFILE: .env.production
+        run: bundle exec fastlane android deploy
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-release
+          path: android/app/build/outputs/bundle/productionRelease/*.aab
+          if-no-files-found: warn

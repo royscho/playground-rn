@@ -1,0 +1,83 @@
+platform :ios do
+  lane :setup_ios_configs do
+    require 'xcodeproj'
+    project_path = File.expand_path('../ios/playground.xcodeproj', __dir__)
+    project = Xcodeproj::Project.open(project_path)
+
+    # Project-level configuration list
+    unless project.build_configuration_list.build_configurations.any? { |c| c.name == 'Staging' }
+      release = project.build_configuration_list.build_configurations.find { |c| c.name == 'Release' }
+      stg = project.new(Xcodeproj::Project::Object::XCBuildConfiguration)
+      stg.name = 'Staging'
+      stg.build_settings = release.build_settings.dup
+      project.build_configuration_list.build_configurations << stg
+    end
+
+    # Target-level configuration lists
+    project.targets.each do |target|
+      next if target.build_configuration_list.build_configurations.any? { |c| c.name == 'Staging' }
+      release = target.build_configuration_list.build_configurations.find { |c| c.name == 'Release' }
+      next unless release
+      stg = project.new(Xcodeproj::Project::Object::XCBuildConfiguration)
+      stg.name = 'Staging'
+      stg.build_settings = release.build_settings.dup
+      stg.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.playground.staging'
+      stg.build_settings['INFOPLIST_KEY_CFBundleDisplayName'] = 'Playground STG'
+      target.build_configuration_list.build_configurations << stg
+      UI.success "Added Staging config to target: #{target.name}"
+    end
+
+    project.save
+    UI.success "Done. Run 'yarn ios --scheme Playground --configuration Staging' to test."
+  end
+
+  lane :test do
+    run_tests(scheme: "PlaygroundTests")
+  end
+
+  lane :staging do
+    increment_build_number(xcodeproj: "ios/playground.xcodeproj")
+    build_app(
+      scheme: "playground Staging",
+      configuration: "Staging",
+      export_method: "development",
+    )
+    # upload_to_testflight  ← uncomment when Apple Developer account is ready
+  end
+
+  lane :beta do
+    increment_build_number(xcodeproj: "ios/playground.xcodeproj")
+    build_app(
+      scheme: "Playground",
+      configuration: "Release",
+    )
+    # upload_to_testflight  ← uncomment when Apple Developer account is ready
+    upload_symbols_to_sentry(
+      auth_token: ENV["SENTRY_AUTH_TOKEN"],
+      org_slug: ENV["SENTRY_ORG"],
+      project_slug: ENV["SENTRY_PROJECT"],
+    )
+  end
+end
+
+platform :android do
+  lane :staging do
+    gradle(
+      task: "bundle",
+      flavor: "staging",
+      build_type: "Release",
+      project_dir: "android/",
+    )
+    # upload_to_play_store(track: "internal")  ← uncomment when Google Play account is ready
+  end
+
+  lane :deploy do
+    gradle(
+      task: "bundle",
+      flavor: "production",
+      build_type: "Release",
+      project_dir: "android/",
+    )
+    # upload_to_play_store(track: "internal")  ← uncomment when Google Play account is ready
+  end
+end
