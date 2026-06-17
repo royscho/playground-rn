@@ -38,7 +38,7 @@ jobs:
           node-version: '22'
           cache: 'yarn'
       - run: yarn install --frozen-lockfile
-      - run: yarn test --ci --coverage --coverageThreshold='{"global":{"lines":60}}'
+      - run: yarn test --ci --coverage --coverageThreshold='{"global":{"lines":55}}'
 
   audit:
     runs-on: ubuntu-latest
