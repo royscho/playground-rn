@@ -26,6 +26,7 @@ export const HomeTabs = () => {
 
   return (
     <Tab.Navigator
+      backBehavior="none"
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
