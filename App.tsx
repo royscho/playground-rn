@@ -1,8 +1,9 @@
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryClient } from '@/shared/api/queryClient';
+import { mmkvPersister } from '@/shared/api/queryPersister';
 import { RootNavigator } from '@/app/navigation/RootNavigator';
 import { linking } from '@/app/navigation/linking';
 import { ThemeProvider } from '@/app/providers/ThemeProvider';
@@ -42,11 +43,15 @@ function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <QueryClientProvider client={queryClient}>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{ persister: mmkvPersister }}
+          onSuccess={() => queryClient.resumePausedMutations()}
+        >
           <NavigationContainer linking={linking} theme={navTheme}>
             <RootNavigator />
           </NavigationContainer>
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

@@ -21,6 +21,7 @@ import { AnalyticsScreen } from '@/features/analytics';
 import { RemoteConfigScreen } from '@/features/remote-config';
 import { A11yScreen } from '@/features/a11y';
 import { I18nScreen } from '@/features/i18n';
+import { OfflineScreen } from '@/features/offline';
 
 const Drawer = createDrawerNavigator<AppDrawerParamList>();
 
@@ -95,6 +96,7 @@ export const AppNavigator = () => {
         component={I18nScreen}
         options={{ title: 'i18n & RTL' }}
       />
+      <Drawer.Screen name="Offline" component={OfflineScreen} />
     </Drawer.Navigator>
   );
 };

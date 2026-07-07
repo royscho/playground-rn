@@ -28,6 +28,7 @@ export type AppDrawerParamList = {
   RemoteConfig: undefined;
   A11y: undefined;
   I18n: undefined;
+  Offline: undefined;
 };
 
 export type HomeTabsParamList = {
