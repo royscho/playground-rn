@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Step 20 — Offline Support</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f1117; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 40px 24px; max-width: 900px; margin: 0 auto; }
+    code, .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+
+    .badge { display: inline-block; background: #6C63FF22; color: #6C63FF; border: 1px solid #6C63FF55; border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }
+    h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #94A3B8; font-size: 16px; margin-bottom: 16px; }
+    .commit-chip { display: inline-block; background: #1a1f2e; border: 1px solid #2d3748; border-radius: 6px; padding: 6px 12px; font-size: 13px; color: #6C63FF; }
+    .header { margin-bottom: 48px; }
+
+    h2 { font-size: 18px; font-weight: 600; color: #e2e8f0; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #2d3748; }
+    section { margin-bottom: 48px; }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .card { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 12px; padding: 20px; }
+    .card-icon { font-size: 24px; margin-bottom: 12px; }
+    .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .card p { font-size: 13px; color: #94A3B8; line-height: 1.5; }
+
+    /* Diagram */
+    .diagram { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 12px; padding: 24px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+    .flow-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; flex-wrap: wrap; }
+    .flow-box { background: #0f1117; border: 1px solid #2d3748; border-radius: 6px; padding: 4px 10px; color: #e2e8f0; white-space: nowrap; }
+    .flow-box.purple { border-color: #6C63FF55; color: #6C63FF; background: #6C63FF11; }
+    .flow-box.green { border-color: #4ade8055; color: #4ade80; background: #4ade8011; }
+    .flow-box.yellow { border-color: #facc1555; color: #facc15; background: #facc1511; }
+    .flow-box.red { border-color: #f8717155; color: #f87171; background: #f8717111; }
+    .flow-box.blue { border-color: #60a5fa55; color: #60a5fa; background: #60a5fa11; }
+    .arrow { color: #475569; }
+    .flow-label { font-size: 11px; color: #64748B; margin-left: 8px; margin-bottom: 12px; }
+    .divider { border: none; border-top: 1px solid #2d3748; margin: 12px 0; }
+
+    /* Bug callout */
+    .callout { background: #f8717111; border: 1px solid #f8717144; border-radius: 12px; padding: 20px; margin-top: 16px; }
+    .callout h3 { color: #f87171; font-size: 14px; margin-bottom: 8px; }
+    .callout p { font-size: 13px; color: #cbd5e1; line-height: 1.6; margin-bottom: 8px; }
+    .callout p:last-child { margin-bottom: 0; }
+    .callout code { background: #0f1117; padding: 1px 5px; border-radius: 4px; color: #facc15; }
+
+    /* Files table */
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 12px; font-size: 12px; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #2d3748; }
+    td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #1a1f2e; vertical-align: top; }
+    td:first-child { font-family: 'SF Mono', 'Fira Code', monospace; color: #94A3B8; }
+    td:last-child { color: #64748B; }
+    .tag { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 4px; padding: 2px 7px; }
+    .tag-new { background: #4ade8022; color: #4ade80; border: 1px solid #4ade8044; }
+    .tag-mod { background: #facc1522; color: #facc15; border: 1px solid #facc1544; }
+
+    .footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #2d3748; color: #475569; font-size: 13px; }
+    .footer strong { color: #94A3B8; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="badge">Step 20 of 32</div>
+    <h1>Offline Support</h1>
+    <p class="subtitle">NetInfo connectivity detection, MMKV-persisted query cache, and mutations that queue offline and resume automatically on reconnect</p>
+    <div class="commit-chip">feat(offline): add NetInfo detection, persisted query cache, and resumable optimistic mutations</div>
+  </div>
+
+  <section>
+    <h2>What was set up</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">📡</div>
+        <h3>Connectivity Detection</h3>
+        <p>NetInfo feeds TanStack's global <code>onlineManager</code>. Every query and mutation in the app checks this one flag before attempting a fetch.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💾</div>
+        <h3>Persisted Query Cache</h3>
+        <p><code>PersistQueryClientProvider</code> + a custom MMKV persister. Whole cache written to disk on every change, restored before first render on cold start.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⏸️</div>
+        <h3>Paused Mutations</h3>
+        <p>Creating/deleting a note while offline doesn't fail — it pauses. UI updates optimistically immediately, real request waits for connectivity.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔁</div>
+        <h3>Resume on Reconnect</h3>
+        <p>Paused mutations — even ones restored from a previous session — automatically retry the moment the app is back online.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔀</div>
+        <h3>Reconciliation, Not Refetch</h3>
+        <p>On success, the optimistic placeholder is swapped for the real server response in place — no blind <code>invalidateQueries</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How a note survives offline → restart → online</h2>
+    <div class="diagram">
+      <p class="flow-label">1. Write path — tap "Add" while offline</p>
+      <div class="flow-row"><div class="flow-box">mutate(title)</div><span class="arrow">→</span><div class="flow-box purple">onMutate: setQueryData</div><span class="arrow">→</span><div class="flow-box green">note visible instantly</div></div>
+      <div class="flow-row"><span class="arrow">→</span><div class="flow-box">canFetch(networkMode)</div><span class="arrow">→</span><div class="flow-box red">onlineManager offline</div><span class="arrow">→</span><div class="flow-box yellow">isPaused: true</div></div>
+      <hr class="divider" />
+
+      <p class="flow-label">2. App killed with mutations still paused</p>
+      <div class="flow-row"><div class="flow-box">persistQueryClient</div><span class="arrow">→</span><div class="flow-box blue">whole cache → MMKV</div><span class="arrow">→</span><div class="flow-box">paused mutation included</div></div>
+      <hr class="divider" />
+
+      <p class="flow-label">3. App relaunched — restore + resume</p>
+      <div class="flow-row"><div class="flow-box">setMutationDefaults</div><span class="arrow">→</span><div class="flow-box purple">runs at module load</div><span class="arrow">→</span><div class="flow-box">before any restore</div></div>
+      <div class="flow-row"><span class="arrow">→</span><div class="flow-box blue">persistQueryClientRestore</div><span class="arrow">→</span><div class="flow-box">hydrate() rebuilds mutation</div><span class="arrow">→</span><div class="flow-box green">mutationFn resolved</div></div>
+      <div class="flow-row"><span class="arrow">→</span><div class="flow-box">onSuccess: resumePausedMutations()</div></div>
+      <hr class="divider" />
+
+      <p class="flow-label">4. Reconnect — NetInfo flips online</p>
+      <div class="flow-row"><div class="flow-box red">NetInfo event</div><span class="arrow">→</span><div class="flow-box purple">onlineManager.setOnline(true)</div><span class="arrow">→</span><div class="flow-box">QueryClient's subscription fires</div></div>
+      <div class="flow-row"><span class="arrow">→</span><div class="flow-box yellow">resumePausedMutations()</div><span class="arrow">→</span><div class="flow-box">mutation.continue() re-runs fetch</div></div>
+      <div class="flow-row"><span class="arrow">→</span><div class="flow-box green">onSuccess: swap temp id → real id</div><span class="arrow">→</span><div class="flow-box green">pending badge → 0</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Two bugs found while wiring this up</h2>
+
+    <div class="callout">
+      <h3>① Mutation defaults registered too late</h3>
+      <p><code>QueryClient.defaultMutationOptions()</code> merges in a mutation's registered defaults <strong>once</strong>, then freezes the result. <code>PersistQueryClientProvider</code> restores mutations from disk in a <code>useEffect</code> that fires before any screen has mounted.</p>
+      <p>Registering <code>setMutationDefaults</code> lazily inside the <code>useCreateNote</code>/<code>useDeleteNote</code> hooks meant a mutation restored after an app restart got rebuilt with <code>mutationFn: undefined</code> — permanently. <code>resumePausedMutations()</code> would call it and silently no-op forever, no matter how many more reconnects happened.</p>
+      <p><strong>Fix:</strong> moved <code>setMutationDefaults</code> to module scope in <code>useNotes.ts</code>. Since <code>OfflineScreen</code> is already eagerly imported by <code>AppNavigator.tsx</code>, this now runs during the static import phase — before restore ever fires.</p>
+    </div>
+
+    <div class="callout" style="margin-top: 16px;">
+      <h3>② invalidateQueries silently erased writes</h3>
+      <p>The original <code>onSettled</code> called <code>invalidateQueries</code> after every mutation — standard TanStack pattern. But JSONPlaceholder is a fake API that never actually persists writes: a refetch after "creating" a note returns the original seed data only, wiping the optimistic entry right back out. The mirror bug hit deletes too — a "deleted" note would reappear after the refetch.</p>
+      <p><strong>Fix:</strong> replaced invalidate-refetch with direct cache reconciliation — <code>onSuccess</code> swaps the optimistic temp-id note for the real server response in place; <code>onError</code> rolls back to the pre-mutation snapshot. No refetch involved either way.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Files</h2>
+    <table>
+      <thead><tr><th>File</th><th>Tag</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>src/shared/api/queryPersister.ts</td><td><span class="tag tag-new">new</span></td><td>MMKV-backed Persister for @tanstack/react-query-persist-client</td></tr>
+        <tr><td>src/shared/api/queryClient.ts</td><td><span class="tag tag-mod">mod</span></td><td>24h default gcTime — persisted data must outlive gc before rehydration</td></tr>
+        <tr><td>src/shared/api/networkConfig.ts</td><td><span class="tag tag-mod">mod</span></td><td>NetInfo → onlineManager wiring (pre-existing, reused as-is)</td></tr>
+        <tr><td>src/features/offline/types/notes.types.ts</td><td><span class="tag tag-new">new</span></td><td>Note type</td></tr>
+        <tr><td>src/features/offline/api/notes.api.ts</td><td><span class="tag tag-new">new</span></td><td>fetch/create/delete against JSONPlaceholder /posts</td></tr>
+        <tr><td>src/features/offline/hooks/useNotes.ts</td><td><span class="tag tag-new">new</span></td><td>Query + mutations; defaults registered at module scope for restart-safety</td></tr>
+        <tr><td>src/features/offline/hooks/useIsOnline.ts</td><td><span class="tag tag-new">new</span></td><td>useSyncExternalStore over onlineManager</td></tr>
+        <tr><td>src/features/offline/hooks/usePendingMutationsCount.ts</td><td><span class="tag tag-new">new</span></td><td>useSyncExternalStore over mutation cache, counts isPaused mutations</td></tr>
+        <tr><td>src/features/offline/components/OfflineBanner.tsx</td><td><span class="tag tag-new">new</span></td><td>Online/offline pill + pending-sync count pill</td></tr>
+        <tr><td>src/features/offline/screens/OfflineScreen.tsx</td><td><span class="tag tag-new">new</span></td><td>Notes list, add/delete, error only blocks screen when no cache exists yet</td></tr>
+        <tr><td>App.tsx</td><td><span class="tag tag-mod">mod</span></td><td>PersistQueryClientProvider + onSuccess: resumePausedMutations()</td></tr>
+        <tr><td>src/app/navigation/types.ts</td><td><span class="tag tag-mod">mod</span></td><td>Added Offline: undefined to AppDrawerParamList</td></tr>
+        <tr><td>src/app/navigation/AppNavigator.tsx</td><td><span class="tag tag-mod">mod</span></td><td>Registered Offline drawer screen</td></tr>
+        <tr><td>package.json</td><td><span class="tag tag-mod">mod</span></td><td>Added @tanstack/react-query-persist-client, aligned react-query to 5.101.2</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="footer">
+    Step 20 of 32 · Next: <strong>Step 21 — JavaScript concepts reference screen</strong>
+  </div>
+
+</body>
+</html>
