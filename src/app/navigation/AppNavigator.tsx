@@ -22,6 +22,7 @@ import { RemoteConfigScreen } from '@/features/remote-config';
 import { A11yScreen } from '@/features/a11y';
 import { I18nScreen } from '@/features/i18n';
 import { OfflineScreen } from '@/features/offline';
+import LiveTicker from '@/features/tWhale/screens/LiveTicker';
 
 const Drawer = createDrawerNavigator<AppDrawerParamList>();
 
@@ -97,6 +98,7 @@ export const AppNavigator = () => {
         options={{ title: 'i18n & RTL' }}
       />
       <Drawer.Screen name="Offline" component={OfflineScreen} />
+      <Drawer.Screen name="Ticker" component={LiveTicker} />
     </Drawer.Navigator>
   );
 };

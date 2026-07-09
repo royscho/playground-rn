@@ -29,6 +29,7 @@ export type AppDrawerParamList = {
   A11y: undefined;
   I18n: undefined;
   Offline: undefined;
+  Ticker: undefined;
 };
 
 export type HomeTabsParamList = {
