@@ -23,6 +23,8 @@ import { A11yScreen } from '@/features/a11y';
 import { I18nScreen } from '@/features/i18n';
 import { OfflineScreen } from '@/features/offline';
 import LiveTicker from '@/features/tWhale/screens/LiveTicker';
+import LiveTickerMobx from '@/features/tWhale/screens/LiveTickerMobx';
+import LiveTickerRtk from '@/features/tWhale/screens/LiveTickerRtk';
 
 const Drawer = createDrawerNavigator<AppDrawerParamList>();
 
@@ -99,6 +101,16 @@ export const AppNavigator = () => {
       />
       <Drawer.Screen name="Offline" component={OfflineScreen} />
       <Drawer.Screen name="Ticker" component={LiveTicker} />
+      <Drawer.Screen
+        name="TickerMobx"
+        component={LiveTickerMobx}
+        options={{ title: 'Ticker (MobX)' }}
+      />
+      <Drawer.Screen
+        name="TickerRtk"
+        component={LiveTickerRtk}
+        options={{ title: 'Ticker (RTK)' }}
+      />
     </Drawer.Navigator>
   );
 };
