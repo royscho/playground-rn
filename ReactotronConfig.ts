@@ -7,6 +7,7 @@ import { queryClient } from '@/shared/api/queryClient';
 import reactotronZustand from 'reactotron-plugin-zustand';
 import { useThemeStore } from '@/features/settings/store/themeStore';
 import { useAuthStore } from '@/features/auth';
+import { useTickerStore } from '@/features/tWhale/store/tickerStore';
 
 const queryClientManager = new QueryClientManager({
   // @ts-ignore
@@ -25,6 +26,7 @@ Reactotron.configure({
       stores: [
         { name: 'auth', store: useAuthStore },
         { name: 'theme', store: useThemeStore },
+        { name: 'ticker', store: useTickerStore },
       ],
     }),
   )

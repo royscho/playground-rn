@@ -26,26 +26,6 @@ const LiveTicker = () => {
     return () => disconnect();
   }, [connect, disconnect]);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        title: {
-          color: colors.text,
-          textAlign: 'center',
-          padding: spacing.md,
-        },
-        item: {
-          backgroundColor: colors.secondary,
-          padding: spacing.lg,
-          marginVertical: spacing.md,
-        },
-        header: {
-          backgroundColor: colors.background,
-        },
-      }),
-    [colors.secondary, colors.text, colors.background, spacing.lg, spacing.md],
-  );
-
   const renderItemSort = ({ item }: { item: Campaign }) => (
     <TickerRow
       item={item}
@@ -62,13 +42,28 @@ const LiveTicker = () => {
     />
   );
 
+  const renderSectionHeader = ({
+    section: { title },
+  }: {
+    section: { title: string };
+  }) => (
+    <View style={{ backgroundColor: colors.background }}>
+      <Text style={[styles.title, { padding: spacing.md, color: colors.text }]}>
+        {title}
+      </Text>
+    </View>
+  );
+
+  const keyExtractor = (item: Campaign, index: number) =>
+    item.campaignId + index;
+
   return (
     <ScreenWrapper title="Ticker" scrollable={false}>
       <Text
-        style={styles.title}
+        style={[styles.title, { color: colors.text, padding: spacing.md }]}
       >{`Total Spend Today: ${totalSpendToday}`}</Text>
       <SectionList
-        keyExtractor={(item, index) => item.campaignId + index}
+        keyExtractor={keyExtractor}
         sections={[
           {
             title: 'Watchlist (by ROAS)',
@@ -81,14 +76,16 @@ const LiveTicker = () => {
             renderItem,
           },
         ]}
-        renderSectionHeader={({ section: { title } }) => (
-          <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
-          </View>
-        )}
+        renderSectionHeader={renderSectionHeader}
       />
     </ScreenWrapper>
   );
 };
+
+const styles = StyleSheet.create({
+  title: {
+    textAlign: 'center',
+  },
+});
 
 export default LiveTicker;
