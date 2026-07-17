@@ -1,19 +1,51 @@
 import { ScreenWrapper } from '@/shared/components';
-import { SectionList, StyleSheet, Text, View } from 'react-native';
+import {
+  SectionList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useTickerStore } from '../store/tickerStore';
 import { useAppTheme } from '@/shared/hooks';
 import TickerRow from '../components/TickerRow';
 import { Campaign } from '../types';
-import { useEffect, useMemo } from 'react';
+import {
+  useCampaignsQuery,
+  useCreateCampaignMutation,
+} from '../hooks/useCampaigns';
+import { useEffect, useMemo, useState } from 'react';
 
 const LiveTicker = () => {
-  const { colors, spacing } = useAppTheme();
+  const { colors, spacing, typography } = useAppTheme();
   const watchlistSorted = useTickerStore(state => state.watchlistSorted);
   const totalSpendToday = useTickerStore(state => state.totalSpendToday);
   const allCampaigns = useTickerStore(state => state.allCampaigns);
   const activeCampaigns = useTickerStore(state => state.activeCampaigns);
+  const setCampaigns = useTickerStore(state => state.setCampaigns);
   const connect = useTickerStore(state => state.connect);
   const disconnect = useTickerStore(state => state.disconnect);
+
+  const campaignsQuery = useCampaignsQuery();
+  const createCampaign = useCreateCampaignMutation();
+  const [newCampaignName, setNewCampaignName] = useState('');
+
+  // One-directional handoff: Query owns the initial fetch, the store just
+  // receives the result once it's ready. The store never reaches back into
+  // Query's cache directly.
+  useEffect(() => {
+    if (campaignsQuery.data) setCampaigns(campaignsQuery.data);
+  }, [campaignsQuery.data, setCampaigns]);
+
+  // Sequencing: don't start the mock stream until the initial campaign list
+  // actually exists — ticking for a list you don't have yet doesn't mean
+  // anything. disconnect() still runs unconditionally on unmount.
+  useEffect(() => {
+    if (!campaignsQuery.isSuccess) return;
+    connect();
+    return () => disconnect();
+  }, [campaignsQuery.isSuccess, connect, disconnect]);
 
   // Set for O(1) membership check — rarely changes, cheap to recompute either way.
   const activeIds = useMemo(
@@ -21,10 +53,12 @@ const LiveTicker = () => {
     [activeCampaigns],
   );
 
-  useEffect(() => {
-    connect();
-    return () => disconnect();
-  }, [connect, disconnect]);
+  const handleAdd = () => {
+    const trimmed = newCampaignName.trim();
+    if (!trimmed) return;
+    createCampaign.mutate(trimmed);
+    setNewCampaignName('');
+  };
 
   const renderItemSort = ({ item }: { item: Campaign }) => (
     <TickerRow
@@ -58,7 +92,39 @@ const LiveTicker = () => {
     item.campaignId + index;
 
   return (
-    <ScreenWrapper title="Ticker" scrollable={false}>
+    <ScreenWrapper
+      title="Ticker"
+      scrollable={false}
+      form
+      loading={campaignsQuery.isLoading}
+      error={allCampaigns.length === 0 ? campaignsQuery.error : null}
+      onRetry={campaignsQuery.refetch}
+      footer={
+        <View style={styles.footerRow}>
+          <TextInput
+            style={[
+              styles.input,
+              { borderColor: colors.border, color: colors.text },
+            ]}
+            value={newCampaignName}
+            onChangeText={setNewCampaignName}
+            placeholder="New campaign name"
+            placeholderTextColor={colors.textSecondary}
+            onSubmitEditing={handleAdd}
+          />
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: colors.primary }]}
+            onPress={handleAdd}
+          >
+            <Text
+              style={{ color: colors.primaryForeground, ...typography.label }}
+            >
+              Add
+            </Text>
+          </TouchableOpacity>
+        </View>
+      }
+    >
       <Text
         style={[styles.title, { color: colors.text, padding: spacing.md }]}
       >{`Total Spend Today: ${totalSpendToday}`}</Text>
@@ -85,6 +151,22 @@ const LiveTicker = () => {
 const styles = StyleSheet.create({
   title: {
     textAlign: 'center',
+  },
+  footerRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    height: 40,
+  },
+  addButton: {
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    borderRadius: 4,
   },
 });
 

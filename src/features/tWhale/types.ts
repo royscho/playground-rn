@@ -28,4 +28,7 @@ export interface TickerStoreState {
   disconnect: () => void; // tears down the stream client
   toggleWatchlist: (campaignId: string) => void; // star/unstar
   _applyTick: (tick: MetricTick) => void; // internal — called by the stream callback only
+  setCampaigns: (campaigns: Campaign[]) => void; // seeds allCampaigns/activeCampaigns once the initial Query resolves
+  addCampaign: (campaign: Campaign) => void; // appends a newly created campaign so the stream can start ticking for it
+  removeCampaignId: (campaignId: string) => void; // rollback path for a failed optimistic create
 }

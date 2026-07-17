@@ -1,6 +1,7 @@
 import { useAppTheme } from '@/shared/hooks';
 import React, { FC, useCallback } from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Star } from 'lucide-react-native';
 import { useTickerStore } from '../store/tickerStore';
 import { Campaign } from '../types';
 
@@ -13,6 +14,13 @@ interface Props {
 const TickerRow: FC<Props> = ({ item, showStarButton, isActive }) => {
   const toggleWatchlist = useTickerStore(state => state.toggleWatchlist);
   const metric = useTickerStore(state => state.metrics[item.campaignId]);
+  // Boolean selector — safe with Zustand's default reference-equality check
+  // (primitives compare by value), so this row only re-renders when ITS OWN
+  // watchlist membership actually flips, not on every watchlist Set change
+  // for other campaigns.
+  const isWatchlisted = useTickerStore(state =>
+    state.watchlist.has(item.campaignId),
+  );
   const { colors, spacing } = useAppTheme();
 
   const toggle = useCallback(
@@ -28,7 +36,21 @@ const TickerRow: FC<Props> = ({ item, showStarButton, isActive }) => {
         marginVertical: spacing.md,
       }}
     >
-      {showStarButton && <Button title="toggle watchlist" onPress={toggle} />}
+      {showStarButton && (
+        <TouchableOpacity
+          onPress={toggle}
+          accessibilityRole="button"
+          accessibilityLabel={
+            isWatchlisted ? 'Remove from watchlist' : 'Add to watchlist'
+          }
+        >
+          <Star
+            size={20}
+            color={colors.warning}
+            fill={isWatchlisted ? colors.warning : 'none'}
+          />
+        </TouchableOpacity>
+      )}
       <Text style={[styles.title, { color: colors.text }]}>{item.name}</Text>
       <View style={styles.row}>
         <Text style={[styles.title, { color: colors.text }]}>
