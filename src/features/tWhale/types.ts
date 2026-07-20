@@ -9,6 +9,11 @@ export interface MetricTick {
 export interface Campaign {
   campaignId: string;
   name: string;
+  status: 'active' | 'pause';
+  // Optional: only the immer/createSelector variant models favorite this
+  // way (server-owned metadata on the campaign). Other store variants keep
+  // their own local watchlist Set and never read this field.
+  isFavorite?: boolean;
 }
 
 export interface MetricStreamClient {

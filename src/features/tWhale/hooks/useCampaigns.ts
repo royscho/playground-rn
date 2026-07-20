@@ -1,5 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createCampaign, fetchCampaigns } from '../api/campaigns.api';
+import {
+  createCampaign,
+  fetchCampaigns,
+  updateCampaignFavorite,
+} from '../api/campaigns.api';
 import { useTickerStore } from '../store/tickerStore';
 import type { Campaign } from '../types';
 
@@ -26,8 +30,11 @@ export const useCreateCampaignMutation = () => {
       // its "real" id isn't unique or trustworthy. This tempId stays the
       // PERMANENT campaignId; we never adopt the server's id (see onSuccess
       // below — there isn't one, deliberately).
-      const tempId = `campaign-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-      const optimisticCampaign: Campaign = { campaignId: tempId, name };
+      const tempId = `campaign-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 7)}`;
+      const status = 'active';
+      const optimisticCampaign: Campaign = { campaignId: tempId, name, status };
 
       queryClient.setQueryData<Campaign[]>(CAMPAIGNS_KEY, old => [
         ...(old ?? []),
@@ -53,6 +60,42 @@ export const useCreateCampaignMutation = () => {
       }
       if (context?.tempId) {
         useTickerStore.getState().removeCampaignId(context.tempId);
+      }
+    },
+  });
+};
+
+// Favorite lives on the Campaign itself (server metadata), not a separate
+// client-side Set — see the immer store variant. The store's allCampaigns
+// isn't written to directly here: LiveTicker's existing Query→store handoff
+// effect re-syncs it whenever campaignsQuery.data changes, same path the
+// initial fetch already uses.
+export const useToggleFavoriteMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      campaignId,
+      isFavorite,
+    }: {
+      campaignId: string;
+      isFavorite: boolean;
+    }) => updateCampaignFavorite(campaignId, isFavorite),
+    onMutate: async ({ campaignId, isFavorite }) => {
+      await queryClient.cancelQueries({ queryKey: CAMPAIGNS_KEY });
+      const previous = queryClient.getQueryData<Campaign[]>(CAMPAIGNS_KEY);
+
+      queryClient.setQueryData<Campaign[]>(CAMPAIGNS_KEY, old =>
+        (old ?? []).map(c =>
+          c.campaignId === campaignId ? { ...c, isFavorite } : c,
+        ),
+      );
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(CAMPAIGNS_KEY, context.previous);
       }
     },
   });

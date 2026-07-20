@@ -1,17 +1,6 @@
 import { ScreenWrapper } from '@/shared/components';
-import {
-  SectionList,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import {
-  selectTotalSpendToday,
-  selectWatchlistSorted,
-  useTickerStoreImmer,
-} from '../store/tickerStore.immer';
+import { SectionList, StyleSheet, Text, View } from 'react-native';
+import { useTickerStoreImmer } from '../store/tickerStore.immer';
 import { useAppTheme } from '@/shared/hooks';
 import TickerRow from '../components/TickerRow';
 import { Campaign } from '../types';
@@ -21,15 +10,26 @@ import {
 } from '../hooks/useCampaigns';
 import { useEffect, useMemo, useState } from 'react';
 import StatCard from '../components/StatCard';
+import FilterChips from '../components/FilterChips';
+import CampaignSearchBar from '../components/CampaignSearchBar';
+import AddCampaignFooter from '../components/AddCampaignFooter';
+import { filterCampaigns } from '../utils';
+import {
+  selectActiveCampaigns,
+  selectTotalSpendToday,
+  selectWatchlistSorted,
+} from '../store/tickerSelelctors';
+import { CircleCheckIcon } from 'lucide-react-native';
 
 const LiveTicker = () => {
-  const { colors, spacing, typography } = useAppTheme();
+  const { colors, spacing } = useAppTheme();
   const watchlistSorted = useTickerStoreImmer(selectWatchlistSorted);
   const totalSpendToday = useTickerStoreImmer(selectTotalSpendToday);
   const allCampaigns = useTickerStoreImmer(state => state.allCampaigns);
-  const activeCampaigns = useTickerStoreImmer(state => state.activeCampaigns);
+  const activeCampaigns = useTickerStoreImmer(selectActiveCampaigns);
   const setCampaigns = useTickerStoreImmer(state => state.setCampaigns);
   const connect = useTickerStoreImmer(state => state.connect);
+  const isConnected = useTickerStoreImmer(state => state.isConnected);
   const disconnect = useTickerStoreImmer(state => state.disconnect);
 
   const campaignsQuery = useCampaignsQuery();
@@ -56,6 +56,21 @@ const LiveTicker = () => {
   const activeIds = useMemo(
     () => new Set(activeCampaigns.map(c => c.campaignId)),
     [activeCampaigns],
+  );
+
+  // Local, ephemeral UI state — pure filter/search input, doesn't belong in
+  // the ticker store (nothing else reads it, nothing streams it).
+  const [search, setSearch] = useState('');
+  const [filterMode, setFilterMode] = useState<'all' | 'active'>('all');
+
+  const filteredAllCampaigns = useMemo(
+    () => filterCampaigns(allCampaigns, search, filterMode, activeIds),
+    [allCampaigns, search, filterMode, activeIds],
+  );
+
+  const filteredWatchlistSorted = useMemo(
+    () => filterCampaigns(watchlistSorted, search, filterMode, activeIds),
+    [watchlistSorted, search, filterMode, activeIds],
   );
 
   const handleAdd = () => {
@@ -105,29 +120,11 @@ const LiveTicker = () => {
       error={allCampaigns.length === 0 ? campaignsQuery.error : null}
       onRetry={campaignsQuery.refetch}
       footer={
-        <View style={styles.footerRow}>
-          <TextInput
-            style={[
-              styles.input,
-              { borderColor: colors.border, color: colors.text },
-            ]}
-            value={newCampaignName}
-            onChangeText={setNewCampaignName}
-            placeholder="New campaign name"
-            placeholderTextColor={colors.textSecondary}
-            onSubmitEditing={handleAdd}
-          />
-          <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: colors.primary }]}
-            onPress={handleAdd}
-          >
-            <Text
-              style={{ color: colors.primaryForeground, ...typography.label }}
-            >
-              Add
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <AddCampaignFooter
+          value={newCampaignName}
+          onChangeText={setNewCampaignName}
+          onSubmit={handleAdd}
+        />
       }
     >
       <StatCard
@@ -137,20 +134,26 @@ const LiveTicker = () => {
         trend="up"
         trendText={2.4}
       />
-      <Text
-        style={[styles.title, { color: colors.text, padding: spacing.md }]}
-      >{`Total Spend Today: ${totalSpendToday}`}</Text>
+      <View style={styles.total}>
+        <CircleCheckIcon color={isConnected ? colors.success : colors.error} />
+        <Text
+          style={[styles.title, { color: colors.text, padding: spacing.md }]}
+        >{`Total Spend Today: ${totalSpendToday}`}</Text>
+      </View>
+
+      <CampaignSearchBar value={search} onChangeText={setSearch} />
+      <FilterChips filterMode={filterMode} onChange={setFilterMode} />
       <SectionList
         keyExtractor={keyExtractor}
         sections={[
           {
             title: 'Watchlist (by ROAS)',
-            data: watchlistSorted,
+            data: filteredWatchlistSorted,
             renderItem: renderItemSort,
           },
           {
             title: 'All Campaigns',
-            data: allCampaigns,
+            data: filteredAllCampaigns,
             renderItem,
           },
         ]}
@@ -164,21 +167,9 @@ const styles = StyleSheet.create({
   title: {
     textAlign: 'center',
   },
-  footerRow: {
+  total: {
     flexDirection: 'row',
-    gap: 8,
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    height: 40,
-  },
-  addButton: {
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    borderRadius: 4,
+    alignItems: 'center',
   },
 });
 

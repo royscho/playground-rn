@@ -1,36 +1,10 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { enableMapSet } from 'immer';
-import { createSelector } from 'reselect';
 import { MetricStreamClient, Campaign, MetricTick } from '../types';
-import { computeTotalSpend, computeWatchlistSorted } from '../utils';
+
 import { createMockMetricStreamClient } from '../api/tickerStream';
-
-// Immer doesn't support Set/Map mutation by default — watchlist needs this
-// enabled once, at module load, before any producer touches a Set/Map.
-enableMapSet();
-
-// totalSpendToday/watchlistSorted are deliberately NOT part of this state
-// shape at all — createSelector below derives them on read, memoized.
-// Nothing here can go stale, because nothing here stores a value that could
-// drift out of sync with its own dependencies. Compare to tickerStore.ts's
-// _applyTick, which has to remember an affectsSpend/affectsWatchlist guard
-// for every derived field — this version has no such bookkeeping to forget.
-interface ImmerTickerState {
-  metrics: Record<string, MetricTick>;
-  allCampaigns: Campaign[];
-  activeCampaigns: Campaign[]; // the smaller subset counted toward totalSpend
-  watchlist: Set<string>;
-  isConnected: boolean;
-  connect: () => void;
-  disconnect: () => void;
-  toggleWatchlist: (campaignId: string) => void;
-  _applyTick: (tick: MetricTick) => void;
-  setCampaigns: (campaigns: Campaign[]) => void;
-  addCampaign: (campaign: Campaign) => void;
-  removeCampaignId: (campaignId: string) => void;
-}
+import { ImmerTickerState } from './types';
 
 // Module-level, not in state — an instance reference, not reactive data.
 let streamClient: MetricStreamClient | null = null;
@@ -40,8 +14,6 @@ export const useTickerStoreImmer = create<ImmerTickerState>()(
     immer((set, get) => ({
       metrics: {},
       allCampaigns: [],
-      activeCampaigns: [],
-      watchlist: new Set(),
       isConnected: false,
 
       connect: () => {
@@ -71,23 +43,10 @@ export const useTickerStoreImmer = create<ImmerTickerState>()(
         );
       },
 
-      toggleWatchlist: (campaignId: string) =>
-        set(
-          state => {
-            // Direct mutation — state.watchlist is an Immer draft, not the
-            // real Set. No new Set(...) copy needed; Immer produces the
-            // correct immutable update from these calls.
-            if (state.watchlist.has(campaignId)) {
-              state.watchlist.delete(campaignId);
-            } else {
-              state.watchlist.add(campaignId);
-            }
-            // No watchlistSorted update here at all — it's derived below,
-            // not stored, so there's nothing to keep in sync.
-          },
-          false,
-          'ticker/toggleWatchlist',
-        ),
+      // No toggleWatchlist action here — favorite is server-owned metadata
+      // on Campaign now (see useToggleFavoriteMutation), not local store
+      // state. Toggling flips the Query cache; this store's allCampaigns
+      // picks it up via LiveTicker's existing Query→store handoff effect.
 
       // Dramatically simpler than the manual-guard version in
       // tickerStore.ts: just write the tick. No affectsSpend/
@@ -106,7 +65,6 @@ export const useTickerStoreImmer = create<ImmerTickerState>()(
         set(
           state => {
             state.allCampaigns = campaigns;
-            state.activeCampaigns = campaigns.slice(0, 2);
           },
           false,
           'ticker/setCampaigns',
@@ -127,10 +85,6 @@ export const useTickerStoreImmer = create<ImmerTickerState>()(
             state.allCampaigns = state.allCampaigns.filter(
               c => c.campaignId !== campaignId,
             );
-            state.watchlist.delete(campaignId);
-            state.activeCampaigns = state.activeCampaigns.filter(
-              c => c.campaignId !== campaignId,
-            );
           },
           false,
           'ticker/removeCampaignId',
@@ -138,25 +92,4 @@ export const useTickerStoreImmer = create<ImmerTickerState>()(
     })),
     { name: 'TickerStoreImmer' },
   ),
-);
-
-// --- Derived state via createSelector — computed on read, memoized ---
-// createSelector's return value is just a plain (state) => result function,
-// which is already a valid Zustand selector — no adapter needed:
-//   const totalSpendToday = useTickerStoreImmer(selectTotalSpendToday);
-
-const selectMetrics = (state: ImmerTickerState) => state.metrics;
-const selectActiveCampaigns = (state: ImmerTickerState) => state.activeCampaigns;
-const selectAllCampaigns = (state: ImmerTickerState) => state.allCampaigns;
-const selectWatchlist = (state: ImmerTickerState) => state.watchlist;
-
-export const selectTotalSpendToday = createSelector(
-  [selectActiveCampaigns, selectMetrics],
-  (activeCampaigns, metrics) => computeTotalSpend(activeCampaigns, metrics),
-);
-
-export const selectWatchlistSorted = createSelector(
-  [selectWatchlist, selectMetrics, selectAllCampaigns],
-  (watchlist, metrics, allCampaigns) =>
-    computeWatchlistSorted(watchlist, metrics, allCampaigns),
 );

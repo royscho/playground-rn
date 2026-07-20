@@ -3,6 +3,7 @@ import React, { FC, useCallback } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Star } from 'lucide-react-native';
 import { useTickerStoreImmer } from '../store/tickerStore.immer';
+import { useToggleFavoriteMutation } from '../hooks/useCampaigns';
 import { Campaign } from '../types';
 
 interface Props {
@@ -12,20 +13,20 @@ interface Props {
 }
 
 const TickerRow: FC<Props> = ({ item, showStarButton, isActive }) => {
-  const toggleWatchlist = useTickerStoreImmer(state => state.toggleWatchlist);
   const metric = useTickerStoreImmer(state => state.metrics[item.campaignId]);
-  // Boolean selector — safe with Zustand's default reference-equality check
-  // (primitives compare by value), so this row only re-renders when ITS OWN
-  // watchlist membership actually flips, not on every watchlist Set change
-  // for other campaigns.
-  const isWatchlisted = useTickerStoreImmer(state =>
-    state.watchlist.has(item.campaignId),
-  );
+  // isFavorite lives on the Campaign itself (server metadata) now, not a
+  // separate store Set — see useToggleFavoriteMutation.
+  const isWatchlisted = !!item.isFavorite;
   const { colors, spacing } = useAppTheme();
+  const toggleFavorite = useToggleFavoriteMutation();
 
   const toggle = useCallback(
-    () => toggleWatchlist(item.campaignId),
-    [toggleWatchlist, item.campaignId],
+    () =>
+      toggleFavorite.mutate({
+        campaignId: item.campaignId,
+        isFavorite: !isWatchlisted,
+      }),
+    [toggleFavorite, item.campaignId, isWatchlisted],
   );
 
   return (
