@@ -72,7 +72,6 @@ const style = StyleSheet.create({
     textTransform: 'uppercase',
   },
   row: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
   },

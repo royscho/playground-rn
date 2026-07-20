@@ -7,7 +7,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useTickerStore } from '../store/tickerStore';
+import {
+  selectTotalSpendToday,
+  selectWatchlistSorted,
+  useTickerStoreImmer,
+} from '../store/tickerStore.immer';
 import { useAppTheme } from '@/shared/hooks';
 import TickerRow from '../components/TickerRow';
 import { Campaign } from '../types';
@@ -20,13 +24,13 @@ import StatCard from '../components/StatCard';
 
 const LiveTicker = () => {
   const { colors, spacing, typography } = useAppTheme();
-  const watchlistSorted = useTickerStore(state => state.watchlistSorted);
-  const totalSpendToday = useTickerStore(state => state.totalSpendToday);
-  const allCampaigns = useTickerStore(state => state.allCampaigns);
-  const activeCampaigns = useTickerStore(state => state.activeCampaigns);
-  const setCampaigns = useTickerStore(state => state.setCampaigns);
-  const connect = useTickerStore(state => state.connect);
-  const disconnect = useTickerStore(state => state.disconnect);
+  const watchlistSorted = useTickerStoreImmer(selectWatchlistSorted);
+  const totalSpendToday = useTickerStoreImmer(selectTotalSpendToday);
+  const allCampaigns = useTickerStoreImmer(state => state.allCampaigns);
+  const activeCampaigns = useTickerStoreImmer(state => state.activeCampaigns);
+  const setCampaigns = useTickerStoreImmer(state => state.setCampaigns);
+  const connect = useTickerStoreImmer(state => state.connect);
+  const disconnect = useTickerStoreImmer(state => state.disconnect);
 
   const campaignsQuery = useCampaignsQuery();
   const createCampaign = useCreateCampaignMutation();
