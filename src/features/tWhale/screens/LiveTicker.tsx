@@ -16,6 +16,7 @@ import {
   useCreateCampaignMutation,
 } from '../hooks/useCampaigns';
 import { useEffect, useMemo, useState } from 'react';
+import StatCard from '../components/StatCard';
 
 const LiveTicker = () => {
   const { colors, spacing, typography } = useAppTheme();
@@ -125,6 +126,13 @@ const LiveTicker = () => {
         </View>
       }
     >
+      <StatCard
+        label="Active Users"
+        value={204}
+        variant="warning"
+        trend="up"
+        trendText={2.4}
+      />
       <Text
         style={[styles.title, { color: colors.text, padding: spacing.md }]}
       >{`Total Spend Today: ${totalSpendToday}`}</Text>
