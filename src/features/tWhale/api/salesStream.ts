@@ -1,33 +1,55 @@
+import { Platform } from 'react-native';
 import { Sale, SaleStreamClient } from '../types';
 
-const PRODUCTS = ['Hoodie', 'Sneakers', 'Tote Bag', 'Water Bottle', 'Cap'];
-const CUSTOMERS = ['Alex', 'Jordan', 'Sam', 'Taylor', 'Casey', 'Morgan'];
+const WS_PORT = 8082;
 
-const generateFakeSale = (): Sale => ({
-  id: `sale-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-  customerName: CUSTOMERS[Math.floor(Math.random() * CUSTOMERS.length)],
-  productName: PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)],
-  amount: Math.round(Math.random() * 180 + 20),
-  timestamp: Date.now(),
-});
+// Android emulator can't reach the host machine's `localhost` — 10.0.2.2 is
+// the AVD's special alias back to it. iOS simulator shares the host's
+// network stack, so `localhost` works directly. A physical device would
+// need the machine's LAN IP instead of either of these.
+const getWsHost = () => (Platform.OS === 'android' ? '10.0.2.2' : 'localhost');
 
-// Deliberately different shape from tickerStream.ts: each event is a NEW
-// discrete sale, not an update to an existing entity — there's no key to
-// upsert on. This is the genuinely append-only case; the store is what
-// caps growth (ring buffer), not the stream itself.
+// Real WebSocket client (RN's built-in global, no library needed) against
+// scripts/mockSalesServer.js — run `yarn mock:sales` in a separate terminal
+// before connecting. Deliberately kept behind the same connect/disconnect
+// interface as the setInterval-based tickerStream.ts, so the store doesn't
+// know or care which transport is underneath.
 export const createMockSaleStreamClient = (): SaleStreamClient => {
-  let intervalId: ReturnType<typeof setInterval> | null = null;
+  let ws: WebSocket | null = null;
+  let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+  let shouldReconnect = false;
+
+  const openSocket = (onSale: (sale: Sale) => void) => {
+    ws = new WebSocket(`ws://${getWsHost()}:${WS_PORT}`);
+
+    ws.onmessage = event => {
+      try {
+        const sale: Sale = JSON.parse(event.data);
+        onSale(sale);
+      } catch {
+        // Malformed message from the mock server — drop it, don't crash the stream.
+      }
+    };
+
+    // onclose fires after onerror too (RN's WebSocket implementation), so
+    // reconnect logic only needs to live in one place.
+    ws.onclose = () => {
+      if (shouldReconnect) {
+        reconnectTimeout = setTimeout(() => openSocket(onSale), 2000);
+      }
+    };
+  };
 
   return {
     connect(onSale: (sale: Sale) => void) {
-      intervalId = setInterval(
-        () => onSale(generateFakeSale()),
-        1500 + Math.random() * 1500,
-      );
+      shouldReconnect = true;
+      openSocket(onSale);
     },
     disconnect() {
-      if (intervalId) clearInterval(intervalId);
-      intervalId = null;
+      shouldReconnect = false;
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      ws?.close();
+      ws = null;
     },
   };
 };
