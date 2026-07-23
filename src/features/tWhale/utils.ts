@@ -1,4 +1,5 @@
 import { Campaign, MetricTick } from './types';
+import { SpendHistoryPoint } from './api/spendHistory.api';
 
 export const computeWatchlistSorted = (
   watchlist: Set<string>,
@@ -22,9 +23,7 @@ export const computeFavoritesSorted = (
 ): Campaign[] =>
   favorites
     .filter(c => c.campaignId in metrics)
-    .sort(
-      (a, b) => metrics[b.campaignId].roas - metrics[a.campaignId].roas,
-    );
+    .sort((a, b) => metrics[b.campaignId].roas - metrics[a.campaignId].roas);
 
 export const computeTotalSpend = (
   actives: Campaign[],
@@ -53,4 +52,22 @@ export const filterCampaigns = (
     const matchesFilter = filterMode === 'all' || activeIds.has(c.campaignId);
     return matchesSearch && matchesFilter;
   });
+};
+
+// Single pass instead of two .map + two .reduce over the same array — the
+// chart needs the per-day series, the stat cards need the aggregate, both
+// built while iterating once.
+export const computeSpendChartData = (history: SpendHistoryPoint[]) => {
+  const spendData: number[] = history.map(h => h.spend);
+  const revenueData: number[] = history.map(h => h.revenue);
+  const labels: string[] = history.map(h => h.date);
+  const spend = history.reduce((sum, h) => h.spend + sum, 0);
+  const revenue = history.reduce((sum, h) => h.revenue + sum, 0);
+
+  return {
+    spendData,
+    revenueData,
+    labels,
+    totals: { spend, revenue, roas: spend > 0 ? revenue / spend : 0 },
+  };
 };

@@ -34,7 +34,7 @@ const TickerRow: FC<Props> = ({ item, showStarButton, isActive }) => {
       style={{
         backgroundColor: isActive ? colors.success : colors.secondary,
         padding: spacing.lg,
-        marginVertical: spacing.md,
+        marginBottom: spacing.sm,
       }}
     >
       {showStarButton && (
@@ -44,24 +44,37 @@ const TickerRow: FC<Props> = ({ item, showStarButton, isActive }) => {
           accessibilityLabel={
             isWatchlisted ? 'Remove from watchlist' : 'Add to watchlist'
           }
+          style={[
+            styles.title,
+            {
+              gap: spacing.sm,
+              paddingBottom: spacing.sm,
+            },
+          ]}
         >
           <Star
             size={20}
             color={colors.warning}
             fill={isWatchlisted ? colors.warning : 'none'}
           />
+          <Text
+            numberOfLines={1}
+            style={[{ color: colors.text, paddingRight: spacing.md }]}
+          >
+            {item.name}
+          </Text>
         </TouchableOpacity>
       )}
-      <Text style={[styles.title, { color: colors.text }]}>{item.name}</Text>
-      <View style={styles.row}>
+
+      <View style={styles.data}>
         <Text style={[styles.title, { color: colors.text }]}>
-          {metric?.spend}
+          {`spend: ${metric?.spend}`}
         </Text>
         <Text style={[styles.title, { color: colors.text }]}>
-          {metric?.revenue}
+          {`revenue: ${metric?.revenue}`}
         </Text>
         <Text style={[styles.title, { color: colors.text }]}>
-          {metric?.roas.toFixed(2)}
+          {`roas: ${metric?.roas.toFixed(2)}`}
         </Text>
       </View>
     </View>
@@ -70,12 +83,11 @@ const TickerRow: FC<Props> = ({ item, showStarButton, isActive }) => {
 
 const styles = StyleSheet.create({
   title: {
-    textAlign: 'center',
-  },
-  row: {
     flexDirection: 'row',
-    flex: 1,
-    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  data: {
+    alignItems: 'flex-start',
   },
 });
 

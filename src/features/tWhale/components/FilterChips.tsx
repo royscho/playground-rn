@@ -12,13 +12,22 @@ interface Props {
 const OPTIONS: { mode: FilterMode; label: string }[] = [
   { mode: 'all', label: 'All' },
   { mode: 'active', label: 'Active Only' },
-];
+] as const;
 
 const FilterChips: FC<Props> = ({ filterMode, onChange }) => {
   const { colors, spacing, typography } = useAppTheme();
 
   return (
-    <View style={[styles.row, { gap: spacing.sm, marginHorizontal: spacing.md }]}>
+    <View
+      style={[
+        styles.row,
+        {
+          gap: spacing.sm,
+          marginHorizontal: spacing.md,
+          paddingBottom: spacing.md,
+        },
+      ]}
+    >
       {OPTIONS.map(({ mode, label }) => {
         const selected = filterMode === mode;
         return (

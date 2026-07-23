@@ -25,6 +25,8 @@ import { OfflineScreen } from '@/features/offline';
 import LiveTicker from '@/features/tWhale/screens/LiveTicker';
 import LiveTickerMobx from '@/features/tWhale/screens/LiveTickerMobx';
 import LiveTickerRtk from '@/features/tWhale/screens/LiveTickerRtk';
+import LiveTickerList from '@/features/tWhale/screens/LiveTickerList';
+import SpendChartScreen from '@/features/tWhale/screens/SpendChartScreen';
 
 const Drawer = createDrawerNavigator<AppDrawerParamList>();
 
@@ -101,6 +103,12 @@ export const AppNavigator = () => {
       />
       <Drawer.Screen name="Offline" component={OfflineScreen} />
       <Drawer.Screen name="Ticker" component={LiveTicker} />
+      <Drawer.Screen name="TickerList" component={LiveTickerList} />
+      <Drawer.Screen
+        name="SpendChart"
+        component={SpendChartScreen}
+        options={{ title: 'Spend & Revenue' }}
+      />
       <Drawer.Screen
         name="TickerMobx"
         component={LiveTickerMobx}
