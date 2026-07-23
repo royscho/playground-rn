@@ -27,6 +27,7 @@ import LiveTickerMobx from '@/features/tWhale/screens/LiveTickerMobx';
 import LiveTickerRtk from '@/features/tWhale/screens/LiveTickerRtk';
 import LiveTickerList from '@/features/tWhale/screens/LiveTickerList';
 import SpendChartScreen from '@/features/tWhale/screens/SpendChartScreen';
+import LiveSalesFeedScreen from '@/features/tWhale/screens/LiveSalesFeedScreen';
 
 const Drawer = createDrawerNavigator<AppDrawerParamList>();
 
@@ -108,6 +109,11 @@ export const AppNavigator = () => {
         name="SpendChart"
         component={SpendChartScreen}
         options={{ title: 'Spend & Revenue' }}
+      />
+      <Drawer.Screen
+        name="SalesFeed"
+        component={LiveSalesFeedScreen}
+        options={{ title: 'Live Sales' }}
       />
       <Drawer.Screen
         name="TickerMobx"

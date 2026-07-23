@@ -21,6 +21,19 @@ export interface MetricStreamClient {
   disconnect: () => void;
 }
 
+export interface Sale {
+  id: string;
+  customerName: string;
+  productName: string;
+  amount: number;
+  timestamp: number;
+}
+
+export interface SaleStreamClient {
+  connect: (onSale: (sale: Sale) => void) => void;
+  disconnect: () => void;
+}
+
 export interface TickerStoreState {
   metrics: Record<string, MetricTick>;
   allCampaigns: Campaign[]; // every campaign that exists — full list + name lookups

@@ -34,6 +34,7 @@ export type AppDrawerParamList = {
   TickerRtk: undefined;
   TickerList: undefined;
   SpendChart: undefined;
+  SalesFeed: undefined;
 };
 
 export type HomeTabsParamList = {
