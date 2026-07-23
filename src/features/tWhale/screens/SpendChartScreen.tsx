@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   card: {
-    flex: 1,
+    //flex: 1,
   },
 });
 

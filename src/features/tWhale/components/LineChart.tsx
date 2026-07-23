@@ -1,6 +1,6 @@
 import { useAppTheme } from '@/shared/hooks';
-import React, { FC, useMemo } from 'react';
-import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import React, { FC, useMemo, useState } from 'react';
+import { LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Polyline } from 'react-native-svg';
 
 interface Series {
@@ -20,8 +20,16 @@ const Y_AXIS_WIDTH = 40;
 
 const LineChart: FC<Props> = ({ series, labels }) => {
   const { colors, spacing, typography } = useAppTheme();
-  const { width: windowWidth } = useWindowDimensions();
-  const chartWidth = windowWidth - spacing.md * 2 - Y_AXIS_WIDTH;
+  // Measured, not derived from useWindowDimensions() minus a guessed
+  // padding total — this component has no way to know how many padded
+  // wrappers sit above it (ScreenWrapper's own default padding, plus
+  // whatever the screen adds locally), so guessing caused the chart to be
+  // computed wider than its real container and overflow past the right
+  // edge. onLayout gives the actual available width regardless.
+  const [containerWidth, setContainerWidth] = useState(0);
+  const onLayout = (e: LayoutChangeEvent) =>
+    setContainerWidth(e.nativeEvent.layout.width);
+  const chartWidth = Math.max(containerWidth - Y_AXIS_WIDTH, 0);
 
   // Container-return-type computation (per-series arrays of {x,y}, plus the
   // shared min/max for the y-axis labels) from props that only change on
@@ -58,7 +66,7 @@ const LineChart: FC<Props> = ({ series, labels }) => {
   const formatTick = (n: number) => Math.round(n).toLocaleString();
 
   return (
-    <View>
+    <View onLayout={onLayout}>
       <View style={styles.chartRow}>
         <View
           style={[
