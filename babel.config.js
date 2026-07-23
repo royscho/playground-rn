@@ -12,5 +12,8 @@ module.exports = {
       },
     ],
     'react-native-reanimated/plugin',
+    // zod v4's ESM build uses `export * as core from './core/index.js'` —
+    // Metro/Babel doesn't transform that syntax by default.
+    '@babel/plugin-transform-export-namespace-from',
   ],
 };
