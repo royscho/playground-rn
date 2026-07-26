@@ -9,6 +9,7 @@ interface Props {
 
 const SaleRow: FC<Props> = ({ sale }) => {
   const { colors, spacing, typography } = useAppTheme();
+  const date = new Date(sale.timestamp);
 
   return (
     <View
@@ -28,6 +29,9 @@ const SaleRow: FC<Props> = ({ sale }) => {
         </Text>
         <Text style={{ color: colors.textSecondary, ...typography.caption }}>
           {sale.customerName}
+        </Text>
+        <Text style={{ color: colors.textSecondary, ...typography.caption }}>
+          {`${date.toLocaleDateString()} · ${date.toLocaleTimeString()}`}
         </Text>
       </View>
       <Text style={{ color: colors.success, ...typography.h3 }}>

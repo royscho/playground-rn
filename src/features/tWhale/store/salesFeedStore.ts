@@ -9,7 +9,7 @@ import { createMockSaleStreamClient } from '../api/salesStream';
 // sale is a new, distinct event, there's no id to overwrite. The cap here
 // IS the control mechanism: drop the oldest once the feed exceeds MAX_SALES,
 // so the list stays bounded no matter how long the stream's been open.
-const MAX_SALES = 25;
+export const MAX_SALES = 25;
 
 let streamClient: SaleStreamClient | null = null;
 
