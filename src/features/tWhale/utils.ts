@@ -1,4 +1,4 @@
-import { Campaign, MetricTick } from './types';
+import { Campaign, MetricTick, SortMetric } from './types';
 import { SpendHistoryPoint } from './api/spendHistory.api';
 
 export const computeWatchlistSorted = (
@@ -53,6 +53,25 @@ export const filterCampaigns = (
     return matchesSearch && matchesFilter;
   });
 };
+
+// Unlike filterCampaigns above, sortBy itself changes rarely (a dropdown
+// tap, not a keystroke) — but its OTHER input, metrics, changes every tick.
+// A real store-level memoized selector would need the "selector factory"
+// pattern to parameterize by sortBy, which is real complexity for a list
+// this small (a handful of campaigns, O(n log n) is nothing). Plain
+// function + useMemo, same as filterCampaigns — just noting this recomputes
+// every tick because of metrics, not because the memoization is wrong; at
+// a larger scale this is where you'd pay for the selector-factory instead.
+export const sortCampaignsByMetric = (
+  campaigns: Campaign[],
+  metrics: Record<string, MetricTick>,
+  sortBy: SortMetric,
+): Campaign[] =>
+  [...campaigns].sort(
+    (a, b) =>
+      (metrics[b.campaignId]?.[sortBy] ?? 0) -
+      (metrics[a.campaignId]?.[sortBy] ?? 0),
+  );
 
 // Single pass instead of two .map + two .reduce over the same array — the
 // chart needs the per-day series, the stat cards need the aggregate, both

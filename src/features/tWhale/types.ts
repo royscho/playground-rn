@@ -1,3 +1,5 @@
+export type SortMetric = 'revenue' | 'spend' | 'roas';
+
 export interface MetricTick {
   campaignId: string;
   spend: number;

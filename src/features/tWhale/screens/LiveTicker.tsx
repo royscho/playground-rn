@@ -3,7 +3,7 @@ import { SectionList, StyleSheet, Text, View } from 'react-native';
 import { useTickerStoreImmer } from '../store/tickerStore.immer';
 import { useAppTheme } from '@/shared/hooks';
 import TickerRow from '../components/TickerRow';
-import { Campaign } from '../types';
+import { Campaign, SortMetric } from '../types';
 import {
   useCampaignsQuery,
   useCreateCampaignMutation,
@@ -13,7 +13,8 @@ import StatCard from '../components/StatCard';
 import FilterChips from '../components/FilterChips';
 import CampaignSearchBar from '../components/CampaignSearchBar';
 import AddCampaignFooter from '../components/AddCampaignFooter';
-import { filterCampaigns } from '../utils';
+import SortDropdown from '../components/SortDropdown';
+import { filterCampaigns, sortCampaignsByMetric } from '../utils';
 import {
   selectActiveCampaigns,
   selectTotalSpendToday,
@@ -27,6 +28,7 @@ const LiveTicker = () => {
   const totalSpendToday = useTickerStoreImmer(selectTotalSpendToday);
   const allCampaigns = useTickerStoreImmer(state => state.allCampaigns);
   const activeCampaigns = useTickerStoreImmer(selectActiveCampaigns);
+  const metrics = useTickerStoreImmer(state => state.metrics);
   const setCampaigns = useTickerStoreImmer(state => state.setCampaigns);
   const connect = useTickerStoreImmer(state => state.connect);
   const isConnected = useTickerStoreImmer(state => state.isConnected);
@@ -62,10 +64,19 @@ const LiveTicker = () => {
   // the ticker store (nothing else reads it, nothing streams it).
   const [search, setSearch] = useState('');
   const [filterMode, setFilterMode] = useState<'all' | 'active'>('all');
+  const [sortBy, setSortBy] = useState<SortMetric>('revenue');
 
   const filteredAllCampaigns = useMemo(
     () => filterCampaigns(allCampaigns, search, filterMode, activeIds),
     [allCampaigns, search, filterMode, activeIds],
+  );
+
+  // metrics is a dependency here too, so this recomputes every tick same as
+  // filteredAllCampaigns's own consumers already do — see the comment on
+  // sortCampaignsByMetric in utils.ts for why that's fine at this scale.
+  const sortedAllCampaigns = useMemo(
+    () => sortCampaignsByMetric(filteredAllCampaigns, metrics, sortBy),
+    [filteredAllCampaigns, metrics, sortBy],
   );
 
   const filteredWatchlistSorted = useMemo(
@@ -143,6 +154,7 @@ const LiveTicker = () => {
 
       <CampaignSearchBar value={search} onChangeText={setSearch} />
       <FilterChips filterMode={filterMode} onChange={setFilterMode} />
+      <SortDropdown value={sortBy} onChange={setSortBy} />
       <SectionList
         keyExtractor={keyExtractor}
         sections={[
@@ -153,7 +165,7 @@ const LiveTicker = () => {
           },
           {
             title: 'All Campaigns',
-            data: filteredAllCampaigns,
+            data: sortedAllCampaigns,
             renderItem,
           },
         ]}

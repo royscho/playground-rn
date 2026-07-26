@@ -3,17 +3,18 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useTickerStoreImmer } from '../store/tickerStore.immer';
 import { useAppTheme } from '@/shared/hooks';
 import TickerRow from '../components/TickerRow';
-import { Campaign } from '../types';
+import { Campaign, SortMetric } from '../types';
 import { useCampaignsQuery } from '../hooks/useCampaigns';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import FilterChips from '../components/FilterChips';
 import CampaignSearchBar from '../components/CampaignSearchBar';
-import { filterCampaigns } from '../utils';
+import { filterCampaigns, sortCampaignsByMetric } from '../utils';
 import {
   selectActiveCampaigns,
   selectTotalSpendToday,
 } from '../store/tickerSelelctors';
 import { CircleCheckIcon } from 'lucide-react-native';
+import SortDropdown from '../components/SortDropdown';
 
 const LiveTickerList = () => {
   const { colors, spacing } = useAppTheme();
@@ -24,6 +25,7 @@ const LiveTickerList = () => {
   const connect = useTickerStoreImmer(state => state.connect);
   const isConnected = useTickerStoreImmer(state => state.isConnected);
   const disconnect = useTickerStoreImmer(state => state.disconnect);
+  const metrics = useTickerStoreImmer(state => state.metrics);
 
   const campaignsQuery = useCampaignsQuery();
   // One-directional handoff: Query owns the initial fetch, the store just
@@ -52,10 +54,16 @@ const LiveTickerList = () => {
   // the ticker store (nothing else reads it, nothing streams it).
   const [search, setSearch] = useState('');
   const [filterMode, setFilterMode] = useState<'all' | 'active'>('all');
+  const [sortBy, setSortBy] = useState<SortMetric>('revenue');
 
   const filteredAllCampaigns = useMemo(
     () => filterCampaigns(allCampaigns, search, filterMode, activeIds),
     [allCampaigns, search, filterMode, activeIds],
+  );
+
+  const sortedAllCampaigns = useMemo(
+    () => sortCampaignsByMetric(filteredAllCampaigns, metrics, sortBy),
+    [filteredAllCampaigns, metrics, sortBy],
   );
 
   const renderItem = useCallback(
@@ -88,10 +96,11 @@ const LiveTickerList = () => {
       </View>
       <CampaignSearchBar value={search} onChangeText={setSearch} />
       <FilterChips filterMode={filterMode} onChange={setFilterMode} />
+      <SortDropdown value={sortBy} onChange={setSortBy} />
       <FlatList
         keyExtractor={keyExtractor}
         renderItem={renderItem}
-        data={filteredAllCampaigns}
+        data={sortedAllCampaigns}
       />
     </ScreenWrapper>
   );
