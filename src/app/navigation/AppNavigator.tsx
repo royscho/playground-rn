@@ -28,6 +28,7 @@ import LiveTickerRtk from '@/features/tWhale/screens/LiveTickerRtk';
 import LiveTickerList from '@/features/tWhale/screens/LiveTickerList';
 import SpendChartScreen from '@/features/tWhale/screens/SpendChartScreen';
 import LiveSalesFeedScreen from '@/features/tWhale/screens/LiveSalesFeedScreen';
+import SummaryScreen from '@/features/twTaskSummery/screens/SummaryScreen';
 
 const Drawer = createDrawerNavigator<AppDrawerParamList>();
 
@@ -125,6 +126,7 @@ export const AppNavigator = () => {
         component={LiveTickerRtk}
         options={{ title: 'Ticker (RTK)' }}
       />
+      <Drawer.Screen name="SummaryScreen" component={SummaryScreen} />
     </Drawer.Navigator>
   );
 };
