@@ -6,23 +6,25 @@ import { immer } from 'zustand/middleware/immer';
 
 type MetricPinnedState = {
   pinned: Set<string>;
-  togglePinned: (id: string) => void;
+  actions: { togglePinned: (id: string) => void };
 };
 enableMapSet();
 
-export const usePinned = create<MetricPinnedState>()(
+const usePinnedStore = create<MetricPinnedState>()(
   devtools(
     persist(
       immer((set, get) => ({
         pinned: new Set(),
-        togglePinned: (id: string) =>
-          set(state => {
-            if (get().pinned.has(id)) {
-              state.pinned.delete(id);
-            } else {
-              state.pinned.add(id);
-            }
-          }),
+        actions: {
+          togglePinned: (id: string) =>
+            set(state => {
+              if (get().pinned.has(id)) {
+                state.pinned.delete(id);
+              } else {
+                state.pinned.add(id);
+              }
+            }),
+        },
       })),
       {
         name: 'pinned-store',
@@ -36,3 +38,8 @@ export const usePinned = create<MetricPinnedState>()(
     ),
   ),
 );
+
+export const usePinned = () => usePinnedStore(state => state.pinned);
+
+export const usePinnedStoreActions = () =>
+  usePinnedStore(state => state.actions);

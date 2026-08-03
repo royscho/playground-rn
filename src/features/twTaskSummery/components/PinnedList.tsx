@@ -7,8 +7,8 @@ import { SummaryMetric } from '../types';
 
 const PinnedList = () => {
   const { spacing, colors, typography } = useAppTheme();
-  const pinned = usePinned(state => state.pinned);
-  const getTotal = usePinned(state => state.pinned.size);
+  const pinned = usePinned();
+  const getTotal = usePinned().size;
   const { data } = useMetrics();
   const pinnedMetrics = useMemo(
     () => (data ?? [])?.filter(m => pinned?.has(m.id)),

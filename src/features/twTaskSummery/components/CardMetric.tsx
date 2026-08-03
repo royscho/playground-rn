@@ -4,7 +4,7 @@ import { SummaryMetric } from '../types';
 import React, { FC } from 'react';
 import { ArrowDown, ArrowUp, PinIcon } from 'lucide-react-native';
 import SimpleLineChart from './Chart';
-import { usePinned } from '../hooks/usePinned';
+import { usePinned, usePinnedStoreActions } from '../hooks/usePinned';
 
 type Props = {
   item: SummaryMetric;
@@ -12,8 +12,8 @@ type Props = {
 
 const CardMetric: FC<Props> = ({ item }) => {
   const { spacing, colors, typography } = useAppTheme();
-  const togglePinned = usePinned(state => state.togglePinned);
-  const isPinned = usePinned(state => state.pinned.has(item.id));
+  const { togglePinned } = usePinnedStoreActions();
+  const isPinned = usePinned().has(item.id);
 
   return (
     <View
