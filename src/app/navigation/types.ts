@@ -11,6 +11,10 @@ export type AuthStackParamList = {
 };
 
 export type AppDrawerParamList = {
+  Main: NavigatorScreenParams<MainStackParamList>;
+};
+
+export type MainStackParamList = {
   HomeTabs: NavigatorScreenParams<HomeTabsParamList>;
   Posts: NavigatorScreenParams<PostsStackParamList>;
   Todos: undefined;

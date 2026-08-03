@@ -64,7 +64,20 @@ export const ScreenWrapper = ({
     centered,
   );
 
-  const canGoBack = navigation.canGoBack();
+  // navigation.canGoBack() bubbles through every ancestor navigator,
+  // including tab navigators — where state.index is just the active tab,
+  // not back-history. That made non-first tabs (Explore/Settings) falsely
+  // report "can go back". Only a stack navigator's index actually means
+  // "something is pushed on top", so walk ancestors and check that.
+  const canGoBack = (() => {
+    let nav: typeof navigation | undefined = navigation;
+    while (nav) {
+      const state = nav.getState();
+      if (state?.type === 'stack' && state.index > 0) return true;
+      nav = nav.getParent();
+    }
+    return false;
+  })();
 
   const canOpenDrawer = (() => {
     if (canGoBack) return false;

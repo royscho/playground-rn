@@ -1,4 +1,5 @@
 import React from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
@@ -41,19 +42,21 @@ function App() {
       };
 
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <PersistQueryClientProvider
-          client={queryClient}
-          persistOptions={{ persister: mmkvPersister }}
-          onSuccess={() => queryClient.resumePausedMutations()}
-        >
-          <NavigationContainer linking={linking} theme={navTheme}>
-            <RootNavigator />
-          </NavigationContainer>
-        </PersistQueryClientProvider>
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <PersistQueryClientProvider
+            client={queryClient}
+            persistOptions={{ persister: mmkvPersister }}
+            onSuccess={() => queryClient.resumePausedMutations()}
+          >
+            <NavigationContainer linking={linking} theme={navTheme}>
+              <RootNavigator />
+            </NavigationContainer>
+          </PersistQueryClientProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
