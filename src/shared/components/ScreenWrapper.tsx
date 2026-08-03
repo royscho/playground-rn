@@ -55,9 +55,29 @@ export const ScreenWrapper = ({
   const { colors, spacing, typography } = useAppTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const styles = createStyles(colors, spacing, typography, insets, padded, centered);
+  const styles = createStyles(
+    colors,
+    spacing,
+    typography,
+    insets,
+    padded,
+    centered,
+  );
 
-  const canGoBack = navigation.canGoBack();
+  // navigation.canGoBack() bubbles through every ancestor navigator,
+  // including tab navigators — where state.index is just the active tab,
+  // not back-history. That made non-first tabs (Explore/Settings) falsely
+  // report "can go back". Only a stack navigator's index actually means
+  // "something is pushed on top", so walk ancestors and check that.
+  const canGoBack = (() => {
+    let nav: typeof navigation | undefined = navigation;
+    while (nav) {
+      const state = nav.getState();
+      if (state?.type === 'stack' && state.index > 0) return true;
+      nav = nav.getParent();
+    }
+    return false;
+  })();
 
   const canOpenDrawer = (() => {
     if (canGoBack) return false;
@@ -76,6 +96,19 @@ export const ScreenWrapper = ({
 
   const showHeader = !!title;
 
+  const hasFooter = footer && !loading && !error;
+  // A ScrollView with automaticallyAdjustKeyboardInsets already resizes
+  // itself for the keyboard on its own (iOS native content-inset
+  // adjustment) — wrapping it in KeyboardAvoidingView too double-applies
+  // the keyboard height, which was pushing focused fields near the end of
+  // a long form completely out of view instead of just under-scrolling.
+  // So for a scrollable form, the footer moves INSIDE the scroll content
+  // (participates in the same inset adjustment) instead of sitting as a
+  // separate fixed sibling that KeyboardAvoidingView used to also need to
+  // account for.
+  const inlineFooter = form && scrollable && hasFooter;
+  const fixedFooter = hasFooter && !inlineFooter;
+
   const content = loading ? (
     <View style={styles.centered}>
       <ActivityIndicator size="large" color={colors.primary} />
@@ -93,10 +126,20 @@ export const ScreenWrapper = ({
   ) : scrollable ? (
     <ScrollView
       style={styles.body}
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={[
+        styles.scrollContent,
+        form && styles.formScrollContent,
+      ]}
       keyboardShouldPersistTaps="handled"
+      // iOS: automatically scrolls so the focused input stays above the
+      // keyboard — no manual onFocus/measure/scrollTo plumbing needed.
+      // No Android equivalent prop; KeyboardAvoidingView's `height`
+      // behavior there resizes the view instead, which usually keeps the
+      // focused field visible without extra scroll logic.
+      automaticallyAdjustKeyboardInsets={form}
     >
       {children}
+      {inlineFooter && <View style={styles.inlineFooter}>{footer}</View>}
     </ScrollView>
   ) : (
     <View style={styles.nonScrollContent}>{children}</View>
@@ -143,13 +186,15 @@ export const ScreenWrapper = ({
 
       {content}
 
-      {footer && !loading && !error && (
-        <View style={styles.footer}>{footer}</View>
-      )}
+      {fixedFooter && <View style={styles.footer}>{footer}</View>}
     </View>
   );
 
-  if (form) {
+  // Only wrap in KeyboardAvoidingView when there's no ScrollView handling
+  // its own keyboard inset (see automaticallyAdjustKeyboardInsets above) —
+  // a non-scrollable form still needs KeyboardAvoidingView since there's
+  // nothing else pushing its footer above the keyboard.
+  if (form && !scrollable) {
     return (
       <KeyboardAvoidingView
         style={styles.kav}
@@ -226,6 +271,13 @@ const createStyles = (
         justifyContent: 'center' as const,
         alignItems: 'center' as const,
       }),
+    },
+    formScrollContent: {
+      paddingBottom: spacing.md,
+    },
+    inlineFooter: {
+      paddingHorizontal: 0,
+      paddingTop: spacing.md,
     },
     nonScrollContent: {
       flex: 1,

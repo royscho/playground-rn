@@ -5,6 +5,7 @@ import {
   Text,
   View,
   StyleSheet,
+  RefreshControl,
 } from 'react-native';
 import { ScreenWrapper } from '@/shared/components';
 import { useAppTheme } from '@/shared/hooks';
@@ -24,6 +25,7 @@ export const FeedScreen = () => {
     isLoading,
     isError,
     refetch,
+    isFetching,
   } = useFeedPosts();
 
   const posts = data?.pages.flat() ?? [];
@@ -88,6 +90,13 @@ export const FeedScreen = () => {
         onEndReachedThreshold={0.3}
         ListFooterComponent={renderFooter}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching}
+            onRefresh={refetch}
+            tintColor={colors.text}
+          />
+        }
       />
     </ScreenWrapper>
   );

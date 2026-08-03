@@ -8,6 +8,8 @@ import reactotronZustand from 'reactotron-plugin-zustand';
 import { useThemeStore } from '@/features/settings/store/themeStore';
 import { useAuthStore } from '@/features/auth';
 import { useTickerStore } from '@/features/tWhale/store/tickerStore';
+import { useTickerStoreImmer } from '@/features/tWhale/store/tickerStore.immer';
+import { useSalesFeedStore } from '@/features/tWhale/store/salesFeedStore';
 
 const queryClientManager = new QueryClientManager({
   // @ts-ignore
@@ -27,6 +29,8 @@ Reactotron.configure({
         { name: 'auth', store: useAuthStore },
         { name: 'theme', store: useThemeStore },
         { name: 'ticker', store: useTickerStore },
+        { name: 'tickerImmer', store: useTickerStoreImmer },
+        { name: 'salesFeed', store: useSalesFeedStore },
       ],
     }),
   )

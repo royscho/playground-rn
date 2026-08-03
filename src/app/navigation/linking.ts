@@ -7,34 +7,38 @@ export const linking: LinkingOptions<RootStackParamList> = {
     screens: {
       AppDrawer: {
         screens: {
-          HomeTabs: {
+          Main: {
             screens: {
-              Feed: 'feed',
-              Explore: 'explore',
-              Settings: 'settings',
+              HomeTabs: {
+                screens: {
+                  Feed: 'feed',
+                  Explore: 'explore',
+                  Settings: 'settings',
+                },
+              },
+              Posts: {
+                screens: {
+                  PostsList: 'posts',
+                  PostDetail: 'posts/:id',
+                },
+              },
+              Todos: 'todos',
+              Animations: 'animations',
+              Forms: 'forms',
+              Realtime: 'realtime',
+              WebView: 'webview',
+              Notifications: 'notifications',
+              Performance: 'performance',
+              NativeModules: 'native-modules',
+              JavaScript: 'javascript',
+              Hooks: 'hooks',
+              TypeScript: 'typescript',
+              Analytics: 'analytics',
+              RemoteConfig: 'remote-config',
+              A11y: 'a11y',
+              I18n: 'i18n',
             },
           },
-          Posts: {
-            screens: {
-              PostsList: 'posts',
-              PostDetail: 'posts/:id',
-            },
-          },
-          Todos: 'todos',
-          Animations: 'animations',
-          Forms: 'forms',
-          Realtime: 'realtime',
-          WebView: 'webview',
-          Notifications: 'notifications',
-          Performance: 'performance',
-          NativeModules: 'native-modules',
-          JavaScript: 'javascript',
-          Hooks: 'hooks',
-          TypeScript: 'typescript',
-          Analytics: 'analytics',
-          RemoteConfig: 'remote-config',
-          A11y: 'a11y',
-          I18n: 'i18n',
         },
       },
     },

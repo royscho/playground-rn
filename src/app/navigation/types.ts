@@ -11,6 +11,10 @@ export type AuthStackParamList = {
 };
 
 export type AppDrawerParamList = {
+  Main: NavigatorScreenParams<MainStackParamList>;
+};
+
+export type MainStackParamList = {
   HomeTabs: NavigatorScreenParams<HomeTabsParamList>;
   Posts: NavigatorScreenParams<PostsStackParamList>;
   Todos: undefined;
@@ -32,6 +36,10 @@ export type AppDrawerParamList = {
   Ticker: undefined;
   TickerMobx: undefined;
   TickerRtk: undefined;
+  TickerList: undefined;
+  SpendChart: undefined;
+  SalesFeed: undefined;
+  SummaryScreen: undefined;
 };
 
 export type HomeTabsParamList = {

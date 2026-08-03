@@ -22,8 +22,7 @@ const generateFakeTick = (campaignIds: string[]): MetricTick | null => {
 // Defaults to the static demo list so the MobX/RTK reference versions (which
 // don't wire in TanStack Query) keep working unchanged.
 export const createMockMetricStreamClient = (
-  getCampaignIds: () => string[] = () =>
-    ALL_CAMPAIGNS.map(c => c.campaignId),
+  getCampaignIds: () => string[] = () => ALL_CAMPAIGNS.map(c => c.campaignId),
 ): MetricStreamClient => {
   let intervalId: ReturnType<typeof setInterval> | null = null;
 

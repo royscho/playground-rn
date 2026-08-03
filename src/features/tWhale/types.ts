@@ -1,3 +1,5 @@
+export type SortMetric = 'revenue' | 'spend' | 'roas';
+
 export interface MetricTick {
   campaignId: string;
   spend: number;
@@ -9,10 +11,28 @@ export interface MetricTick {
 export interface Campaign {
   campaignId: string;
   name: string;
+  status: 'active' | 'pause';
+  // Optional: only the immer/createSelector variant models favorite this
+  // way (server-owned metadata on the campaign). Other store variants keep
+  // their own local watchlist Set and never read this field.
+  isFavorite?: boolean;
 }
 
 export interface MetricStreamClient {
   connect: (onTick: (tick: MetricTick) => void) => void;
+  disconnect: () => void;
+}
+
+export interface Sale {
+  id: string;
+  customerName: string;
+  productName: string;
+  amount: number;
+  timestamp: number;
+}
+
+export interface SaleStreamClient {
+  connect: (onSale: (sale: Sale) => void) => void;
   disconnect: () => void;
 }
 

@@ -49,3 +49,7 @@ jest.mock('react-native-keychain', () => ({
   getGenericPassword: jest.fn(() => Promise.resolve(false)),
   resetGenericPassword: jest.fn(() => Promise.resolve(true)),
 }));
+
+// Official mock — notifee's real module constructs a native module instance
+// at import time, which throws under Jest (no native bridge available).
+jest.mock('@notifee/react-native', () => require('@notifee/react-native/jest-mock'));

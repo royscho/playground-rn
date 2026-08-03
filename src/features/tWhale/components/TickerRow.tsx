@@ -2,7 +2,8 @@ import { useAppTheme } from '@/shared/hooks';
 import React, { FC, useCallback } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Star } from 'lucide-react-native';
-import { useTickerStore } from '../store/tickerStore';
+import { useTickerStoreImmer } from '../store/tickerStore.immer';
+import { useToggleFavoriteMutation } from '../hooks/useCampaigns';
 import { Campaign } from '../types';
 
 interface Props {
@@ -12,20 +13,20 @@ interface Props {
 }
 
 const TickerRow: FC<Props> = ({ item, showStarButton, isActive }) => {
-  const toggleWatchlist = useTickerStore(state => state.toggleWatchlist);
-  const metric = useTickerStore(state => state.metrics[item.campaignId]);
-  // Boolean selector — safe with Zustand's default reference-equality check
-  // (primitives compare by value), so this row only re-renders when ITS OWN
-  // watchlist membership actually flips, not on every watchlist Set change
-  // for other campaigns.
-  const isWatchlisted = useTickerStore(state =>
-    state.watchlist.has(item.campaignId),
-  );
+  const metric = useTickerStoreImmer(state => state.metrics[item.campaignId]);
+  // isFavorite lives on the Campaign itself (server metadata) now, not a
+  // separate store Set — see useToggleFavoriteMutation.
+  const isWatchlisted = !!item.isFavorite;
   const { colors, spacing } = useAppTheme();
+  const toggleFavorite = useToggleFavoriteMutation();
 
   const toggle = useCallback(
-    () => toggleWatchlist(item.campaignId),
-    [toggleWatchlist, item.campaignId],
+    () =>
+      toggleFavorite.mutate({
+        campaignId: item.campaignId,
+        isFavorite: !isWatchlisted,
+      }),
+    [toggleFavorite, item.campaignId, isWatchlisted],
   );
 
   return (
@@ -33,7 +34,7 @@ const TickerRow: FC<Props> = ({ item, showStarButton, isActive }) => {
       style={{
         backgroundColor: isActive ? colors.success : colors.secondary,
         padding: spacing.lg,
-        marginVertical: spacing.md,
+        marginBottom: spacing.sm,
       }}
     >
       {showStarButton && (
@@ -43,24 +44,37 @@ const TickerRow: FC<Props> = ({ item, showStarButton, isActive }) => {
           accessibilityLabel={
             isWatchlisted ? 'Remove from watchlist' : 'Add to watchlist'
           }
+          style={[
+            styles.title,
+            {
+              gap: spacing.sm,
+              paddingBottom: spacing.sm,
+            },
+          ]}
         >
           <Star
             size={20}
             color={colors.warning}
             fill={isWatchlisted ? colors.warning : 'none'}
           />
+          <Text
+            numberOfLines={1}
+            style={[{ color: colors.text, paddingRight: spacing.md }]}
+          >
+            {item.name}
+          </Text>
         </TouchableOpacity>
       )}
-      <Text style={[styles.title, { color: colors.text }]}>{item.name}</Text>
-      <View style={styles.row}>
+
+      <View style={styles.data}>
         <Text style={[styles.title, { color: colors.text }]}>
-          {metric?.spend}
+          {`spend: ${metric?.spend}`}
         </Text>
         <Text style={[styles.title, { color: colors.text }]}>
-          {metric?.revenue}
+          {`revenue: ${metric?.revenue}`}
         </Text>
         <Text style={[styles.title, { color: colors.text }]}>
-          {metric?.roas.toFixed(2)}
+          {`roas: ${metric?.roas.toFixed(2)}`}
         </Text>
       </View>
     </View>
@@ -69,12 +83,11 @@ const TickerRow: FC<Props> = ({ item, showStarButton, isActive }) => {
 
 const styles = StyleSheet.create({
   title: {
-    textAlign: 'center',
-  },
-  row: {
     flexDirection: 'row',
-    flex: 1,
-    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  data: {
+    alignItems: 'flex-start',
   },
 });
 
