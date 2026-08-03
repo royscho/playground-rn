@@ -1,9 +1,10 @@
 import { useAppTheme } from '@/shared/hooks';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SummaryMetric } from '../types';
 import React, { FC } from 'react';
-import { ArrowDown, ArrowUp } from 'lucide-react-native';
+import { ArrowDown, ArrowUp, PinIcon } from 'lucide-react-native';
 import SimpleLineChart from './Chart';
+import { usePinned } from '../hooks/usePinned';
 
 type Props = {
   item: SummaryMetric;
@@ -11,6 +12,9 @@ type Props = {
 
 const CardMetric: FC<Props> = ({ item }) => {
   const { spacing, colors, typography } = useAppTheme();
+  const togglePinned = usePinned(state => state.togglePinned);
+  const isPinned = usePinned(state => state.pinned.has(item.id));
+
   return (
     <View
       style={{
@@ -48,6 +52,9 @@ const CardMetric: FC<Props> = ({ item }) => {
           data={item.sparkline}
           color={item.deltaPercent > 0 ? colors.success : colors.error}
         />
+        <Pressable onPress={() => togglePinned(item.id)}>
+          <PinIcon color={isPinned ? colors.success : colors.text} width={16} />
+        </Pressable>
       </View>
     </View>
   );

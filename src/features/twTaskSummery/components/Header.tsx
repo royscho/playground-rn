@@ -1,26 +1,32 @@
 import { useAppTheme } from '@/shared/hooks';
 import {
   ActivityIndicator,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { RefreshCcwIcon } from 'lucide-react-native';
+import { ArrowBigLeft, RefreshCcwIcon } from 'lucide-react-native';
 import { useMetrics } from '../hooks/useMetrics';
 import { FC } from 'react';
+import { useNavigation } from '@react-navigation/native';
 
 type Props = {
   count?: number;
+  search: string;
 };
-const Header: FC<Props> = ({ count }) => {
+const Header: FC<Props> = ({ count, search }) => {
   const { colors, spacing, typography } = useAppTheme();
-  const { refetch, isFetching, isError } = useMetrics();
-
+  const { refetch, isFetching, isError } = useMetrics(search);
+  const { goBack } = useNavigation();
   const onPress = () => refetch();
 
   return (
     <View style={styles.header}>
+      <Pressable onPress={goBack}>
+        <ArrowBigLeft color={colors.text} />
+      </Pressable>
       <Text
         style={[
           {
