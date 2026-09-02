@@ -39,6 +39,7 @@ export type MainStackParamList = {
   TickerList: undefined;
   SpendChart: undefined;
   SalesFeed: undefined;
+  SalesFeedSse: undefined;
   SummaryScreen: undefined;
 };
 

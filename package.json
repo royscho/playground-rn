@@ -15,6 +15,7 @@
     "start:prod": "ENVFILE=.env.production react-native start",
     "test": "jest",
     "mock:sales": "node scripts/mockSalesServer.js",
+    "mock:sales:sse": "node scripts/mockSalesServerSse.js",
     "prepare": "husky"
   },
   "dependencies": {

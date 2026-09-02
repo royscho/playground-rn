@@ -38,6 +38,7 @@ import LiveTickerRtk from '@/features/tWhale/screens/LiveTickerRtk';
 import LiveTickerList from '@/features/tWhale/screens/LiveTickerList';
 import SpendChartScreen from '@/features/tWhale/screens/SpendChartScreen';
 import LiveSalesFeedScreen from '@/features/tWhale/screens/LiveSalesFeedScreen';
+import LiveSalesFeedSseScreen from '@/features/tWhale/screens/LiveSalesFeedSseScreen';
 import SummaryScreen from '@/features/twTaskSummery/screens/SummaryScreen';
 
 const Drawer = createDrawerNavigator<AppDrawerParamList>();
@@ -82,6 +83,7 @@ const SafeLiveTicker = withErrorBoundary(LiveTicker);
 const SafeLiveTickerList = withErrorBoundary(LiveTickerList);
 const SafeSpendChartScreen = withErrorBoundary(SpendChartScreen);
 const SafeLiveSalesFeedScreen = withErrorBoundary(LiveSalesFeedScreen);
+const SafeLiveSalesFeedSseScreen = withErrorBoundary(LiveSalesFeedSseScreen);
 const SafeLiveTickerMobx = withErrorBoundary(LiveTickerMobx);
 const SafeLiveTickerRtk = withErrorBoundary(LiveTickerRtk);
 const SafeSummaryScreen = withErrorBoundary(SummaryScreen);
@@ -142,6 +144,7 @@ const DRAWER_ITEMS: Array<{ name: keyof MainStackParamList; label: string }> = [
   { name: 'TickerList', label: 'Ticker List' },
   { name: 'SpendChart', label: 'Spend & Revenue' },
   { name: 'SalesFeed', label: 'Live Sales' },
+  { name: 'SalesFeedSse', label: 'Live Sales (SSE)' },
   { name: 'TickerMobx', label: 'Ticker (MobX)' },
   { name: 'TickerRtk', label: 'Ticker (RTK)' },
   { name: 'SummaryScreen', label: 'Summary Screen' },
@@ -223,6 +226,11 @@ const MainStackNavigator = () => (
       name="SalesFeed"
       component={SafeLiveSalesFeedScreen}
       options={{ title: 'Live Sales' }}
+    />
+    <Stack.Screen
+      name="SalesFeedSse"
+      component={SafeLiveSalesFeedSseScreen}
+      options={{ title: 'Live Sales (SSE)' }}
     />
     <Stack.Screen
       name="TickerMobx"
