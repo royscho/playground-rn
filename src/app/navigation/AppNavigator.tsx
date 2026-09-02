@@ -12,6 +12,7 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 import type { AppDrawerParamList, MainStackParamList } from './types';
+import { ErrorBoundary } from '@/shared/components';
 
 import { HomeTabs } from '@/features/home';
 import { PostsNavigator } from '@/features/posts';
@@ -41,6 +42,49 @@ import SummaryScreen from '@/features/twTaskSummery/screens/SummaryScreen';
 
 const Drawer = createDrawerNavigator<AppDrawerParamList>();
 const Stack = createNativeStackNavigator<MainStackParamList>();
+
+// A screen crash shouldn't take down the whole app (CLAUDE.md critical
+// rule) — wraps each screen once, here, rather than editing every screen
+// file individually. Wrapped components are created ONCE at module scope,
+// not inside MainStackNavigator's render: react-navigation remounts a
+// screen whenever its `component` prop is a new function reference, so
+// calling withErrorBoundary(...) inline in JSX on every render would
+// silently remount every screen on every AppNavigator re-render.
+const withErrorBoundary = <P extends object>(Component: React.ComponentType<P>) => {
+  const Wrapped = (props: P) => (
+    <ErrorBoundary>
+      <Component {...props} />
+    </ErrorBoundary>
+  );
+  Wrapped.displayName = `WithErrorBoundary(${Component.displayName ?? Component.name ?? 'Component'})`;
+  return Wrapped;
+};
+
+const SafeHomeTabs = withErrorBoundary(HomeTabs);
+const SafePostsNavigator = withErrorBoundary(PostsNavigator);
+const SafeTodosScreen = withErrorBoundary(TodosScreen);
+const SafeAnimationsScreen = withErrorBoundary(AnimationsScreen);
+const SafeFormsScreen = withErrorBoundary(FormsScreen);
+const SafeRealtimeScreen = withErrorBoundary(RealtimeScreen);
+const SafeWebViewScreen = withErrorBoundary(WebViewScreen);
+const SafeNotificationsScreen = withErrorBoundary(NotificationsScreen);
+const SafePerformanceScreen = withErrorBoundary(PerformanceScreen);
+const SafeNativeModulesScreen = withErrorBoundary(NativeModulesScreen);
+const SafeJavaScriptScreen = withErrorBoundary(JavaScriptScreen);
+const SafeHooksScreen = withErrorBoundary(HooksScreen);
+const SafeTypeScriptScreen = withErrorBoundary(TypeScriptScreen);
+const SafeAnalyticsScreen = withErrorBoundary(AnalyticsScreen);
+const SafeRemoteConfigScreen = withErrorBoundary(RemoteConfigScreen);
+const SafeA11yScreen = withErrorBoundary(A11yScreen);
+const SafeI18nScreen = withErrorBoundary(I18nScreen);
+const SafeOfflineScreen = withErrorBoundary(OfflineScreen);
+const SafeLiveTicker = withErrorBoundary(LiveTicker);
+const SafeLiveTickerList = withErrorBoundary(LiveTickerList);
+const SafeSpendChartScreen = withErrorBoundary(SpendChartScreen);
+const SafeLiveSalesFeedScreen = withErrorBoundary(LiveSalesFeedScreen);
+const SafeLiveTickerMobx = withErrorBoundary(LiveTickerMobx);
+const SafeLiveTickerRtk = withErrorBoundary(LiveTickerRtk);
+const SafeSummaryScreen = withErrorBoundary(SummaryScreen);
 
 const BACK_EXIT_TIMEOUT_MS = 2000;
 
@@ -134,63 +178,63 @@ const MainStackNavigator = () => (
     initialRouteName="HomeTabs"
     screenOptions={{ headerShown: false }}
   >
-    <Stack.Screen name="HomeTabs" component={HomeTabs} />
-    <Stack.Screen name="Posts" component={PostsNavigator} />
-    <Stack.Screen name="Todos" component={TodosScreen} />
-    <Stack.Screen name="Animations" component={AnimationsScreen} />
-    <Stack.Screen name="Forms" component={FormsScreen} />
-    <Stack.Screen name="Realtime" component={RealtimeScreen} />
-    <Stack.Screen name="WebView" component={WebViewScreen} />
-    <Stack.Screen name="Notifications" component={NotificationsScreen} />
-    <Stack.Screen name="Performance" component={PerformanceScreen} />
+    <Stack.Screen name="HomeTabs" component={SafeHomeTabs} />
+    <Stack.Screen name="Posts" component={SafePostsNavigator} />
+    <Stack.Screen name="Todos" component={SafeTodosScreen} />
+    <Stack.Screen name="Animations" component={SafeAnimationsScreen} />
+    <Stack.Screen name="Forms" component={SafeFormsScreen} />
+    <Stack.Screen name="Realtime" component={SafeRealtimeScreen} />
+    <Stack.Screen name="WebView" component={SafeWebViewScreen} />
+    <Stack.Screen name="Notifications" component={SafeNotificationsScreen} />
+    <Stack.Screen name="Performance" component={SafePerformanceScreen} />
     <Stack.Screen
       name="NativeModules"
-      component={NativeModulesScreen}
+      component={SafeNativeModulesScreen}
       options={{ title: 'Native Modules' }}
     />
-    <Stack.Screen name="JavaScript" component={JavaScriptScreen} />
-    <Stack.Screen name="Hooks" component={HooksScreen} />
-    <Stack.Screen name="TypeScript" component={TypeScriptScreen} />
-    <Stack.Screen name="Analytics" component={AnalyticsScreen} />
+    <Stack.Screen name="JavaScript" component={SafeJavaScriptScreen} />
+    <Stack.Screen name="Hooks" component={SafeHooksScreen} />
+    <Stack.Screen name="TypeScript" component={SafeTypeScriptScreen} />
+    <Stack.Screen name="Analytics" component={SafeAnalyticsScreen} />
     <Stack.Screen
       name="RemoteConfig"
-      component={RemoteConfigScreen}
+      component={SafeRemoteConfigScreen}
       options={{ title: 'Remote Config' }}
     />
     <Stack.Screen
       name="A11y"
-      component={A11yScreen}
+      component={SafeA11yScreen}
       options={{ title: 'Accessibility' }}
     />
     <Stack.Screen
       name="I18n"
-      component={I18nScreen}
+      component={SafeI18nScreen}
       options={{ title: 'i18n & RTL' }}
     />
-    <Stack.Screen name="Offline" component={OfflineScreen} />
-    <Stack.Screen name="Ticker" component={LiveTicker} />
-    <Stack.Screen name="TickerList" component={LiveTickerList} />
+    <Stack.Screen name="Offline" component={SafeOfflineScreen} />
+    <Stack.Screen name="Ticker" component={SafeLiveTicker} />
+    <Stack.Screen name="TickerList" component={SafeLiveTickerList} />
     <Stack.Screen
       name="SpendChart"
-      component={SpendChartScreen}
+      component={SafeSpendChartScreen}
       options={{ title: 'Spend & Revenue' }}
     />
     <Stack.Screen
       name="SalesFeed"
-      component={LiveSalesFeedScreen}
+      component={SafeLiveSalesFeedScreen}
       options={{ title: 'Live Sales' }}
     />
     <Stack.Screen
       name="TickerMobx"
-      component={LiveTickerMobx}
+      component={SafeLiveTickerMobx}
       options={{ title: 'Ticker (MobX)' }}
     />
     <Stack.Screen
       name="TickerRtk"
-      component={LiveTickerRtk}
+      component={SafeLiveTickerRtk}
       options={{ title: 'Ticker (RTK)' }}
     />
-    <Stack.Screen name="SummaryScreen" component={SummaryScreen} />
+    <Stack.Screen name="SummaryScreen" component={SafeSummaryScreen} />
   </Stack.Navigator>
 );
 
